@@ -4,8 +4,9 @@ on:
   push:
     branches: [main]
     paths: ["**/*.md", ".github/workflows/links.yml"]
+  # Runs on every pull request, not only Markdown changes: main requires this
+  # check to pass, and a required check that never runs blocks the merge.
   pull_request:
-    paths: ["**/*.md", ".github/workflows/links.yml"]
   schedule:
     - cron: "0 6 * * 1"
   workflow_dispatch:

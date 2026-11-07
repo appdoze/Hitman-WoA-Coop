@@ -32,7 +32,7 @@ Any mismatch or failed check ends the connection with a clear error to both play
 | Field | Purpose | Decision |
 |---|---|---|
 | Protocol version | Message format must match (always the first 2 bytes, see above) | D007 |
-| Match ID and join proof | From the Peacock lobby (invite code). Proves the peer belongs to this match. The join secret itself is **never sent**: each side proves it knows the secret by answering a random challenge from the other (for example an HMAC of the challenge). The relay gets a separate relay token derived from the secret, so the relay operator, or anyone who can see relay traffic before encryption starts, can't use what they see to join the match. The relay forwards nothing until the token matches (R18). | D003, D018 |
+| Match ID and join proof | From the Peacock lobby (invite code). Proves the peer belongs to this match. The join secret itself is **never sent**: each side proves it knows the secret by answering a random challenge from the other (for example an HMAC of the challenge). The proof runs **after** encryption is set up and signs, together: both sides' challenges, a direction label (host to client, or client to host) and the encrypted session's unique identifier. Including the session identifier means a proof only works on the connection it was made on, so someone in the middle (such as a relay operator) can't pass the challenges between the real players and stay in the middle. Including both challenges and the direction stops a side's own challenge being bounced back and answered by itself. What the session identifier is depends on the networking library (D008, D018). The relay gets a separate relay token derived from the secret, so the relay operator, or anyone who can see relay traffic before encryption starts, can't use what they see to join the match. The relay forwards nothing until the token matches (R18). | D003, D018 |
 | Mod version | Same mod build on both sides | D006 |
 | Game build | Same game build | D006 |
 | Platform (Steam or Epic) | Sent for information. Only a mismatch if D017 rules out playing across platforms. | D017 |
@@ -72,5 +72,6 @@ Every `PlayerAction` and `WorldEvent` carries the player number of whoever cause
 - How entity IDs are encoded (Spike 2)
 - Whether `NpcState` is needed at all, or `WorldEvent`s are enough (Spike 4, design tier)
 - Maximum message sizes and rates for each type (Month 9 bandwidth work)
-- Whether the relay needs to read anything beyond the match ID and join secret, or only forwards encrypted traffic (D018)
+- Whether the relay needs to read anything beyond the match ID and relay token, or only forwards encrypted traffic (D018). The relay never sees the join secret.
+- What the encrypted session's unique identifier is in the chosen networking library, for the join proof (D008, D018)
 - How the join secret is generated, shared with both players by Peacock, and expired after the match, and how the relay token is derived from it (D003, D018). Peacock's match data (`SetMatchData`) is readable by every participant in the match, so check what else can read it before storing the secret there.
