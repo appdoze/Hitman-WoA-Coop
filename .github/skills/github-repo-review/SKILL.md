@@ -98,7 +98,8 @@ Checks that have caught real errors before:
 
 Sources outside GitHub:
 - **GitLab:** `curl -s https://gitlab.com/api/v4/projects/OWNER%2FREPO?license=true` gives description, licence and last activity; `.../repository/files/README.md/raw?ref=master` gives the readme.
-- **Nexus Mods** returns 403 to scripts and link checkers, and builds its lists in the browser. Read it in a real browser instead; keyword search is `https://www.nexusmods.com/games/GAME/mods?keyword=WORD&sort=endorsements`. Record the date checked, and say that only mod pages were read, not mod files.
+- **Nexus Mods and ModDB** return 403 to scripts and link checkers (Nexus also builds its lists in the browser). Read them in a real browser instead, and add them to the link checker's ignore file; Nexus keyword search is `https://www.nexusmods.com/games/GAME/mods?keyword=WORD&sort=endorsements`. Record the date checked, and say that only mod pages were read, not mod files.
+- **Don't guess page addresses or IDs.** Look them up (for example GameBanana's search API, `https://gamebanana.com/apiv11/Util/Search/Results?_sModelName=Game&_sSearchString=WORD`) and confirm the page title before linking. A guessed numeric ID can land on an unrelated page that still returns 200.
 
 Sites outside GitHub may be unreachable from the sandbox. Note which claims you couldn't check rather than guessing.
 
