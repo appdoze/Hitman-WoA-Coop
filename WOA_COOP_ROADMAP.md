@@ -106,7 +106,7 @@ Checked on 2026-11-07 by searching [Nexus Mods](https://www.nexusmods.com/games/
   | [The Peacock Project](https://thepeacockproject.org) | Peacock's site; its Discord is linked from the Peacock readme. |
   | [HITMAPS](https://www.hitmaps.com) | Maps and Roulette; runs the public Ghost Mode server `gm.hitmaps.com` and the [hitman-server-patcher](https://gitlab.com/hitmaps/hitman-server-patcher). |
   | [Hitman Forum](https://www.hitmanforum.com) | The long-running fan forum, with modding threads. |
-  | GitHub: [glacier-modding](https://github.com/glacier-modding), [atampy25](https://github.com/atampy25), [OrfeasZ](https://github.com/OrfeasZ); GitLab: [LocalGhost](https://gitlab.com/grappigegovert/localghost) | Source for the tools and servers above. |
+  | GitHub: [glacier-modding](https://github.com/glacier-modding), [atampy25](https://github.com/atampy25), [OrfeasZ](https://github.com/OrfeasZ); GitLab: [LocalGhost](https://gitlab.com/grappigegovert/localghost), with a GitHub mirror at [thepeacockproject/LocalGhost](https://github.com/thepeacockproject/LocalGhost) that GitHub code search covers | Source for the tools and servers above. |
   | [GameBanana](https://gamebanana.com/games/8925) and [ModDB](https://www.moddb.com/games/hitman-3) | Almost nothing: GameBanana has 3 HITMAN 3 items, ModDB has 1 HITMAN 3 mod and 3 downloads. Not worth searching further. |
 
   There's no Steam Workshop for HITMAN. Discord can't be searched from outside, so ask there directly.
