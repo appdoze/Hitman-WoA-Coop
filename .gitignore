@@ -42,11 +42,15 @@ message-logs/
 *.gzf
 *.bndb
 
-# Fuzzing output
-crash-*
-leak-*
-timeout-*
-corpus/
+# Fuzzing output (libFuzzer writes crash-*, leak-*, timeout-* and oom-* into the
+# directory it runs in). Only ignored inside fuzz/ so source files such as
+# mod/src/crash-reporter.cpp aren't hidden. Seed corpora in fuzz/**/corpus/ are
+# committed on purpose; only generated corpora are ignored.
+fuzz/**/crash-*
+fuzz/**/leak-*
+fuzz/**/timeout-*
+fuzz/**/oom-*
+fuzz/**/corpus/generated/
 
 # OS
 .DS_Store
