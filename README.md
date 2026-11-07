@@ -4,7 +4,7 @@ A planned co-op and multiplayer mod for **HITMAN World of Assassination**, built
 
 > **Status:** planning and research. Nothing is playable yet. See the [roadmap](WOA_COOP_ROADMAP.md).
 
-> **Access:** this repository is private for now while the first research spikes run. If you'd like to help with research, ask the maintainer (appdoze) for access. It will go public once there are spike results to share.
+> **Help wanted:** the first research spikes haven't started yet. If you know Glacier 2, ZHMModSDK or Peacock, see [CONTRIBUTING.md](CONTRIBUTING.md) and the [spike list](docs/spikes/).
 
 ## What to expect
 
