@@ -198,6 +198,7 @@ Issues: [Month 1 milestone](https://github.com/appdoze/Hitman-WoA-Coop/milestone
 - [ ] Start Spikes 1 and 2
 
 ### Month 2: Spikes
+- [ ] Settle the decisions that don't need spike results: D006, D007, D008, D010, D013, D015, D018 (issues #16–#22, see [docs/decisions](docs/decisions/))
 - [ ] Finish Spikes 1 and 2
 - [ ] Start Spikes 3 and 4
 - [ ] Spike 5 in parallel, if someone has spare time
@@ -210,7 +211,7 @@ Issues: [Month 1 milestone](https://github.com/appdoze/Hitman-WoA-Coop/milestone
 - **Milestone:** a written test report (all six files in [docs/spikes](docs/spikes/)) and a chosen tier
 
 ### Month 4: Network layer and player sync (Paris or ICA Facility)
-- [ ] Handshake: game build, mod version, protocol version, installed-mods hash, contract ID, difficulty
+- [ ] Handshake: game build, mod version, protocol version, installed-mods hash, contract ID, difficulty (fields drafted in [docs/protocol.md](docs/protocol.md))
 - [ ] Connection choice: self-hosted relay by default, direct P2P only after a warning about IP addresses
 - [ ] Handshake also exchanges each player's platform (Steam or Epic) and owned locations
 - [ ] Reliable channel for events, best-effort channel for position

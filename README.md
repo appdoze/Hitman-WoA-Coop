@@ -30,10 +30,22 @@ Planned. Folders are created when code for them starts.
 | `mod/` | The ZHMModSDK mod: hooks, puppet, sync, network client | C++ (CMake) |
 | `peacock-plugin/` | Co-op lobbies, contract selection, scoring and progression for Peacock | TypeScript |
 | `relay/` | The relay server that forwards traffic between two players | To be decided |
-| `protocol/` | The network message schema, shared by the mod, relay and tools | Schema files |
+| `protocol/` | The network message schema, shared by the mod, relay and tools. Drafted in [docs/protocol.md](docs/protocol.md) until D008 is decided. | Schema files |
 | `fuzz/` | Fuzz tests for the message parser (from Month 4, R17). Seed inputs are committed; generated crashes aren't. | C++ (libFuzzer) |
 | `tools/` | Echo mode helpers, fake client and fake host, message replay, profile backup script | To be decided |
 | `docs/` | [Spike reports](docs/spikes/), [decision records](docs/decisions/) and the [glossary](docs/GLOSSARY.md) | Markdown |
+
+## Target versions
+
+The versions the project is built and tested against. Filled in by [#7](https://github.com/appdoze/Hitman-WoA-Coop/issues/7) and [#10](https://github.com/appdoze/Hitman-WoA-Coop/issues/10), and updated whenever one changes.
+
+| Component | Version | Notes |
+|---|---|---|
+| HITMAN World of Assassination (Steam) | To be recorded | Exact build number from the game |
+| HITMAN World of Assassination (Epic) | To be recorded | Exact build number from the game |
+| ZHMModSDK | To be recorded | Release or commit |
+| Peacock | To be recorded | Release or commit |
+| Simple Mod Framework | To be recorded | Only if content mods are tested |
 
 ## Requirements (planned)
 
@@ -63,6 +75,7 @@ Co-op is experimental. Back up your Peacock `userdata` folder before playing. Th
 - Research results: [docs/spikes](docs/spikes/)
 - Decisions and why they were made: [docs/decisions](docs/decisions/)
 - Terms used in this project: [glossary](docs/GLOSSARY.md)
+- Network message draft: [docs/protocol.md](docs/protocol.md)
 - Code of conduct: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 
 ## Licence
