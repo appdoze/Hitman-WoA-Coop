@@ -42,7 +42,7 @@ Don't build what already exists. Check these in Month 1.
 | Tool | Use for this mod | Licence |
 |---|---|---|
 | [ZHMModSDK](https://github.com/OrfeasZ/ZHMModSDK) | The mod itself: C++ hooks into the game | GPL-3.0+ |
-| ZHMModSDK built-in mods (`Mods/` folder) | Ready-made reference code: `Editor` (entity inspection, for Spike 2), `DebugMod`, `Player`, `Outfits` (Spike 1 disguises), `NoPause` (pause behaviour, R6 and Part 9 Method 4), `World`, `Hitmen` | GPL-3.0+ |
+| ZHMModSDK built-in mods (`Mods/` folder) | Ready-made reference code: `Editor` (entity inspection, for Spike 2), `DebugMod`, `Player`, `Outfits` (Spike 1 disguises), `NoPause` (stops pausing when the window loses focus, for Part 9 Method 4; it does **not** stop the pause menu freezing the world, so it doesn't solve R6), `OnlineTools` (lets the game talk to custom servers over plain HTTP, including untrusted domains: needed for Part 1 option (a), and for pointing a second game copy at a second Peacock in Part 9), `World`, `Hitmen` | GPL-3.0+ |
 | [Peacock](https://github.com/thepeacockproject/Peacock) | Server: lobbies, scoring, progression | AGPL-3.0 |
 | [Simple Mod Framework](https://github.com/atampy25/simple-mod-framework) | Installing content changes; what most players use to install mods | LGPL-3.0 |
 | [GlacierKit](https://github.com/atampy25/glacierkit) | Browsing level entities and bricks offline (Spike 2, per-map work) | LGPL-3.0 |
@@ -52,7 +52,8 @@ Don't build what already exists. Check these in Month 1.
 
 - [ ] Read through the ZHMModSDK `Mods/` folder before writing hooks from scratch
 - [ ] Try `Editor` on Paris and note how NPCs, doors and items are identified (input to Spike 2)
-- [ ] Check whether `NoPause` already stops the game pausing when its window loses focus
+- [x] Check whether `NoPause` already stops the game pausing when its window loses focus. **Yes:** it forces the game's `PauseOnFocusLoss` option off and stops the window minimising on focus loss. Reuse it for Part 9 Method 4. The pause menu itself (R6) still needs its own hook.
+- [ ] Try `OnlineTools` with a Peacock running on another PC (Part 1 option (a))
 
 ### Prior work
 - [ ] Search the Peacock and Glacier modding Discords, GitHub and Nexus Mods for earlier co-op or multiplayer attempts on WoA, HITMAN 2 or HITMAN 2016
@@ -92,8 +93,9 @@ Settle these before writing feature code. Write the answers into this file.
 - [ ] **Crash recovery:** if either game crashes, the mission ends cleanly for the other player, and nobody loses progress already confirmed in Peacock.
 - [ ] **Licence:** Peacock is AGPL-3.0 and ZHMModSDK is GPL-3.0+. A fork you release, or host for other people, must publish its source. This repo uses AGPL-3.0, which is compatible with both. Keep co-op server code in a separate plugin or module where possible, to make rebasing on Peacock updates easier.
 - [ ] **Installed mods must match:** content mods (Simple Mod Framework) can change levels, NPCs and items, which breaks entity IDs and sync. Hash the list of installed mods and their versions, and compare it in the handshake. Decide whether to block mismatches or only warn.
-- [ ] **DLC and location ownership:** both players must own the location being played. Use the entitlements Peacock already reads at login (`components/oauthToken.ts`, `components/ownership.ts`) to grey out locations that either player doesn't own.
-- [ ] **Network privacy:** direct P2P connections reveal each player's IP address to the other. Offer a relay option (for example Steam Datagram Relay through GameNetworkingSockets, or a small self-hosted relay). Never open router ports (UPnP) without asking the player first, and show a warning before a direct connection.
+- [ ] **DLC and location ownership:** both players must own the location being played. Use the entitlements Peacock already reads at login (`components/oauthToken.ts`, with the platform entitlement lists in `components/platformEntitlements.ts`; `components/ownership.ts` maps DLC packs to unlockable items) to grey out locations that either player doesn't own. Under server option (b), each player's Peacock only knows that player's entitlements, so the two players must exchange their owned locations, for example in the handshake.
+- [ ] **Steam and Epic together:** decide whether a Steam player and an Epic player can play together. Anything tied to one platform (Steam P2P, Steam Datagram Relay, Steam invites) only works if both players are on that platform.
+- [ ] **Network privacy:** direct P2P connections reveal each player's IP address to the other. Use a small self-hosted relay as the default, since it works for both Steam and Epic players. Steam Datagram Relay (through GameNetworkingSockets) is an option for Steam-only lobbies, but only once you've confirmed a mod can use it: it runs on Valve's network and may need Steamworks setup tied to the game's own app. Never open router ports (UPnP) without asking the player first, and show a warning before a direct connection.
 
 ---
 
@@ -195,7 +197,8 @@ Months 4–12 assume Tier 2. Under Tier 1, skip the NPC and world sync items and
 
 ### Month 4: Network layer and player sync (Paris or ICA Facility)
 - [ ] Handshake: game build, mod version, protocol version, installed-mods hash, contract ID, difficulty
-- [ ] Connection choice: relay by default, direct P2P only after a warning about IP addresses
+- [ ] Connection choice: self-hosted relay by default, direct P2P only after a warning about IP addresses
+- [ ] Handshake also exchanges each player's platform (Steam or Epic) and owned locations
 - [ ] Reliable channel for events, best-effort channel for position
 - [ ] Sync position, rotation, speed, crouch and sneak at 20–30 Hz, with smoothing between updates
 - [ ] Sync disguise changes
@@ -219,7 +222,7 @@ Months 4–12 assume Tier 2. Under Tier 1, skip the NPC and world sync items and
 - [ ] Peacock server setup from Part 1 working
 - [ ] Lobbies built on Peacock's existing `RegisterToMatch` and `SetMatchData` (`components/multiplayer/multiplayerService.ts`), not from scratch
 - [ ] Invite codes, which map to match IDs
-- [ ] Ownership check: the lobby only offers locations both players own
+- [ ] Ownership check: the lobby only offers locations both players own (using the owned locations exchanged in the handshake under server option (b))
 - [ ] Co-op contract presets (Peacock's existing `MultiplayerPresets` config is the model)
 - [ ] Event authority and duplicate removal from Part 1, so scoring, Silent Assassin and challenges are correct for both profiles
 - [ ] XP and mastery for both profiles, with no duplication or loss
@@ -336,7 +339,8 @@ Review this at the decision gate and at the end of every month. Update the statu
 | R10 | IOI objects to the mod | Low | Distribution problems | Contact from IOI | Follow Peacock's approach: no game files shipped, offline only, no piracy support | Open |
 | R11 | Players run different content mods | High | Entity IDs differ, instant out-of-sync | Handshake mods-hash mismatch | Compare mods hash in handshake; block or warn | Open |
 | R12 | Partner doesn't own a location or DLC | Medium | Can't join, or game crashes on load | Ownership check in lobby | Only offer locations both players own | Open |
-| R13 | Player IP addresses exposed over P2P | Medium | Privacy and harassment risk | Direct connection used | Relay by default; warn before direct connection; no automatic port opening | Open |
+| R13 | Player IP addresses exposed over P2P | Medium | Privacy and harassment risk | Direct connection used | Self-hosted relay by default; warn before direct connection; no automatic port opening | Open |
+| R16 | Steam-only networking excludes Epic players | Medium | Steam and Epic players can't play together | Choosing Steam P2P or Steam Datagram Relay | Platform-neutral relay by default; Steam networking only for Steam-only lobbies | Open |
 | R14 | Co-op bug corrupts or loses a Peacock profile | Medium | Players lose progress, lose trust | Profile validation errors, tester reports | Automatic profile backup before every co-op mission; validate profile writes | Open |
 | R15 | Duplicated work with another co-op project or upstream | Low | Wasted months | Part 0 search, community contacts | Search and make contact in Month 1; collaborate or reuse | Open |
 
@@ -393,12 +397,12 @@ A small standalone program that speaks the co-op protocol and pretends to be pla
 ### Method 4: Two copies of the game on one PC (milestone checks only)
 - [ ] Find out what stops a second launch (Steam, and any single-instance check in the game itself) and handle it in the mod for development builds
 - [ ] Run the second copy windowed, at low resolution and low settings. Plan for 32 GB of RAM.
-- [ ] Stop the game pausing or freezing when its window loses focus (likely needs a hook)
+- [ ] Stop the game pausing or freezing when its window loses focus: enable ZHMModSDK's built-in `NoPause` mod on both copies (see Part 0)
 - [ ] Each copy uses its own Peacock profile (Method 3 override)
 - Alternative: a Hyper-V virtual machine with GPU partitioning (Windows 11 Pro; community scripts such as Easy-GPU-PV). More isolated, but fiddlier to set up.
 
 ### Method 5: Bad-connection testing on one PC
-- [ ] **clumsy** (free Windows tool) to add lag, packet loss and reordering, including to loopback traffic between two programs on the same PC
+- [ ] **clumsy** (free Windows tool) to add lag, packet loss and reordering, including to loopback traffic between two programs on the same PC. Not to be confused with ZHMModSDK's built-in mod also called `Clumsy`, which has nothing to do with networking.
 - [ ] If you use GameNetworkingSockets, its built-in fake lag and loss settings may be enough on their own
 
 ### Method 6: Real people (Month 11 onward)
