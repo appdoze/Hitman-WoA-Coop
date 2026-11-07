@@ -1,0 +1,65 @@
+name: Spike report
+description: Results from one of the risk spikes in Part 2 of the roadmap
+title: "Spike N: "
+labels: ["spike"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing. For a full write-up, use [docs/spikes/TEMPLATE.md](https://github.com/appdoze/Hitman-WoA-Coop/blob/main/docs/spikes/TEMPLATE.md) in a pull request and link it here.
+        Don't paste decompiled game code. Function names, byte patterns, offsets and notes are fine.
+  - type: dropdown
+    id: spike
+    attributes:
+      label: Which spike?
+      options:
+        - "Spike 1: Remote player puppet"
+        - "Spike 2: Matching entities across machines"
+        - "Spike 3: Can the AI perceive a second player?"
+        - "Spike 4: Can the client's world follow the host's?"
+        - "Spike 5: Does WoA still contain usable multiplayer code?"
+        - "Spike 6: Tagging and injecting Peacock events"
+    validations:
+      required: true
+  - type: dropdown
+    id: result
+    attributes:
+      label: Result
+      options:
+        - Pass
+        - Fail
+        - Partial
+        - Still investigating
+    validations:
+      required: true
+  - type: textarea
+    id: tried
+    attributes:
+      label: What you tried
+      description: Approach, hooks or tools used, and the map
+    validations:
+      required: true
+  - type: textarea
+    id: happened
+    attributes:
+      label: What happened
+      description: Observations, measurements, screenshots or short clips
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce
+      description: Steps, and a link to code if there is any
+  - type: input
+    id: build
+    attributes:
+      label: Game build and platform
+      placeholder: "e.g. 3.x.x, Steam"
+    validations:
+      required: true
+  - type: textarea
+    id: next
+    attributes:
+      label: What this means for the roadmap
+      description: Suggested tier, changes to estimates, new risks

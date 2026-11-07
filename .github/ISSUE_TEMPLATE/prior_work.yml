@@ -1,0 +1,50 @@
+name: Prior work
+description: An earlier co-op or multiplayer attempt, research or tool worth knowing about
+title: "Prior work: "
+labels: ["prior-work"]
+body:
+  - type: input
+    id: link
+    attributes:
+      label: Link
+      description: Repo, video, forum or Discord post (a message link, not a screenshot of someone's private messages)
+    validations:
+      required: true
+  - type: dropdown
+    id: game
+    attributes:
+      label: Game
+      options:
+        - HITMAN World of Assassination / HITMAN 3
+        - HITMAN 2
+        - HITMAN 2016
+        - Other Glacier 2 game
+        - Not game-specific
+    validations:
+      required: true
+  - type: textarea
+    id: progress
+    attributes:
+      label: How far did it get?
+      description: What worked, as far as you can tell
+    validations:
+      required: true
+  - type: textarea
+    id: blocked
+    attributes:
+      label: What blocked it?
+      description: Why it stopped, if known
+  - type: dropdown
+    id: available
+    attributes:
+      label: Is the code or research available?
+      options:
+        - Yes, open source
+        - Notes or videos only
+        - No
+        - Not sure
+  - type: textarea
+    id: relevance
+    attributes:
+      label: Which part of the roadmap does it help?
+      description: For example Spike 1, Spike 5, Part 1 networking

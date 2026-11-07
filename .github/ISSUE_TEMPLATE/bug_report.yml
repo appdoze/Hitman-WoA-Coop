@@ -1,0 +1,70 @@
+name: Bug report
+description: Something broke in a co-op build (once builds exist)
+title: "Bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Security problems** (crashes from malformed messages, relay abuse, data leaks) go through [SECURITY.md](https://github.com/appdoze/Hitman-WoA-Coop/blob/main/SECURITY.md), not here.
+
+        **Before attaching logs**, remove IP addresses, Steam and Epic user IDs and account names. Never attach your whole Peacock `userdata` folder.
+  - type: input
+    id: build
+    attributes:
+      label: Game build and platform
+      placeholder: "e.g. 3.x.x, Steam"
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Mod version and Peacock version
+    validations:
+      required: true
+  - type: dropdown
+    id: role
+    attributes:
+      label: Were you the host or the client?
+      options:
+        - Host
+        - Client
+        - Both affected
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: mods
+    attributes:
+      label: Installed content mods
+      description: From Simple Mod Framework, with versions. Write "none" if none.
+    validations:
+      required: true
+  - type: input
+    id: map
+    attributes:
+      label: Map and mission
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What you did and what happened
+      description: Steps, what you expected and what happened instead
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs from both players
+      description: Mod logs and message logs from **both** PCs, with personal data removed. Drag files in or paste short excerpts.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I removed IP addresses, Steam or Epic user IDs and account names from everything attached
+          required: true
+        - label: Both players were on the same game build, mod version and content mods

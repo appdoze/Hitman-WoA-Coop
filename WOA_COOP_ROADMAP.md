@@ -95,13 +95,15 @@ Settle these before writing feature code. Write the answers into this file.
 - [ ] **Installed mods must match:** content mods (Simple Mod Framework) can change levels, NPCs and items, which breaks entity IDs and sync. Hash the list of installed mods and their versions, and compare it in the handshake. Decide whether to block mismatches or only warn.
 - [ ] **DLC and location ownership:** both players must own the location being played. Use the entitlements Peacock already reads at login (`components/oauthToken.ts`, with the platform entitlement lists in `components/platformEntitlements.ts`; `components/ownership.ts` maps DLC packs to unlockable items) to grey out locations that either player doesn't own. Under server option (b), each player's Peacock only knows that player's entitlements, so the two players must exchange their owned locations, for example in the handshake.
 - [ ] **Steam and Epic together:** decide whether a Steam player and an Epic player can play together. Anything tied to one platform (Steam P2P, Steam Datagram Relay, Steam invites) only works if both players are on that platform.
-- [ ] **Network privacy:** direct P2P connections reveal each player's IP address to the other. Use a small self-hosted relay as the default, since it works for both Steam and Epic players. Steam Datagram Relay (through GameNetworkingSockets) is an option for Steam-only lobbies, but only once you've confirmed a mod can use it: it runs on Valve's network and may need Steamworks setup tied to the game's own app. Never open router ports (UPnP) without asking the player first, and show a warning before a direct connection.
+- [ ] **Network privacy:** direct P2P connections reveal each player's IP address to the other. Use a small self-hosted relay as the default, since it works for both Steam and Epic players. Steam Datagram Relay (through GameNetworkingSockets) is an option for Steam-only lobbies, but only once you've confirmed a mod can use it: it runs on Valve's network and may need Steamworks setup tied to the game's own app. Never open router ports (UPnP) without asking the player first, and show a warning before a direct connection. The relay must only forward traffic between two peers in the same match, never act as an open proxy (R18), and whoever runs it can see both players' IP addresses, so say so in the privacy notice.
 
 ---
 
 ## Part 2: Risk spikes (do these first)
 
 Each test has a pass/fail outcome. Don't polish anything here. Throwaway code is fine.
+
+Write each spike up in [docs/spikes](docs/spikes/) using [the template](docs/spikes/TEMPLATE.md), one file per spike.
 
 ### Spike 1: Remote player puppet
 - [ ] Spawn a second 47 (or an NPC wearing 47's outfit) in a level, controlled by your code, not by the game's player controller.
@@ -193,13 +195,15 @@ Months 4–12 assume Tier 2. Under Tier 1, skip the NPC and world sync items and
 - [ ] Finish Spikes 3 and 4
 - [ ] Decision gate: pick the tier
 - [ ] Fill in every answer in Part 1
-- **Milestone:** a written test report and a chosen tier
+- **Milestone:** a written test report (all six files in [docs/spikes](docs/spikes/)) and a chosen tier
 
 ### Month 4: Network layer and player sync (Paris or ICA Facility)
 - [ ] Handshake: game build, mod version, protocol version, installed-mods hash, contract ID, difficulty
 - [ ] Connection choice: self-hosted relay by default, direct P2P only after a warning about IP addresses
 - [ ] Handshake also exchanges each player's platform (Steam or Epic) and owned locations
 - [ ] Reliable channel for events, best-effort channel for position
+- [ ] Message checks built into the message format from the start: every incoming message is checked for size, field ranges, known message types and known entity IDs before anything uses it. The mod reads network data in C++ inside the game process, so a malformed message must never reach game code (R17).
+- [ ] Fuzz-test the message parser: feed it large amounts of random and broken input (for example with libFuzzer) and fix every crash. Run it in CI.
 - [ ] Sync position, rotation, speed, crouch and sneak at 20–30 Hz, with smoothing between updates
 - [ ] Sync disguise changes
 - [ ] Sync held and visible items
@@ -248,7 +252,9 @@ Months 4–12 assume Tier 2. Under Tier 1, skip the NPC and world sync items and
 - [ ] Mission restart and quitting handled for both players
 - [ ] Manual saves turned off in co-op
 - [ ] Pause behaviour from Part 1: menus don't stop the shared world
-- [ ] Checks on incoming messages: reject malformed messages, unknown entity IDs and impossible values
+- [ ] Gameplay checks on incoming messages, on top of the Month 4 format checks: reject impossible values for the game state, such as teleporting across the map, killing an NPC that's already dead, or picking up an item that's somewhere else
+- [ ] Rate limits: drop a peer that floods messages
+- [ ] Fuzz tests extended to every message type added since Month 4
 - **Milestone:** stable at 150 ms ping, with clean failure on disconnect
 
 ### Month 10: Interface and contracts
@@ -341,6 +347,8 @@ Review this at the decision gate and at the end of every month. Update the statu
 | R12 | Partner doesn't own a location or DLC | Medium | Can't join, or game crashes on load | Ownership check in lobby | Only offer locations both players own | Open |
 | R13 | Player IP addresses exposed over P2P | Medium | Privacy and harassment risk | Direct connection used | Self-hosted relay by default; warn before direct connection; no automatic port opening | Open |
 | R16 | Steam-only networking excludes Epic players | Medium | Steam and Epic players can't play together | Choosing Steam P2P or Steam Datagram Relay | Platform-neutral relay by default; Steam networking only for Steam-only lobbies | Open |
+| R17 | Malformed messages crash or exploit a player's game, Peacock or the relay | Medium | Crashes, remote code execution, players stop trusting the mod | Fuzz-test crashes, reports through SECURITY.md | Format checks from Month 4; fuzz tests in CI; gameplay checks and rate limits in Month 9; private reporting through SECURITY.md | Open |
+| R18 | Relay abused as an open proxy | Low | Relay operator blamed for others' traffic; relay shut down | Unknown traffic through the relay | Relay only forwards between two peers in the same match, after the handshake; rate limits | Open |
 | R14 | Co-op bug corrupts or loses a Peacock profile | Medium | Players lose progress, lose trust | Profile validation errors, tester reports | Automatic profile backup before every co-op mission; validate profile writes | Open |
 | R15 | Duplicated work with another co-op project or upstream | Low | Wasted months | Part 0 search, community contacts | Search and make contact in Month 1; collaborate or reuse | Open |
 
