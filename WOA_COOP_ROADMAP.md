@@ -44,7 +44,7 @@ Don't build what already exists. Check these in Month 1.
 | Tool | Use for this mod | Licence |
 |---|---|---|
 | [ZHMModSDK](https://github.com/OrfeasZ/ZHMModSDK) | The mod itself: C++ hooks into the game | GPL-3.0+ |
-| ZHMModSDK built-in mods (`Mods/` folder) | Ready-made reference code: `Editor` (entity inspection, for Spike 2), `DebugMod`, `Player`, `Outfits` (Spike 1 disguises), `NoPause` (stops pausing when the window loses focus, for Part 9 Method 4; it does **not** stop the pause menu freezing the world, so it doesn't solve R6), `OnlineTools` (lets the game talk to custom servers over plain HTTP, including untrusted domains: needed for Part 1 option (a), and for pointing a second game copy at a second Peacock in Part 9), `World`, `Hitmen` | GPL-3.0+ |
+| ZHMModSDK built-in mods (`Mods/` folder) | Ready-made reference code for almost every spike. See [ZHMModSDK built-in mods](#zhmmodsdk-built-in-mods) below. | GPL-3.0+ |
 | [Peacock](https://github.com/thepeacockproject/Peacock) | Server: lobbies, scoring, progression | AGPL-3.0 |
 | [Simple Mod Framework](https://github.com/atampy25/simple-mod-framework) | Installing content changes; what most players use to install mods | LGPL-3.0 |
 | [GlacierKit](https://github.com/atampy25/glacierkit) | Browsing level entities and bricks offline (Spike 2, per-map work) | LGPL-3.0 |
@@ -52,14 +52,37 @@ Don't build what already exists. Check these in Month 1.
 | [RPKG Tool](https://github.com/glacier-modding/RPKG-Tool) | Extracting game resources for research | See repo |
 | [Hitman Hashes](https://github.com/glacier-modding/Hitman-Hashes) | Resource and hash name lists | MIT |
 
-- [ ] Read through the ZHMModSDK `Mods/` folder before writing hooks from scratch
+- [x] Read through the ZHMModSDK `Mods/` folder before writing hooks from scratch. Done for all 22 mods at SDK commit `d98355d` (2026-11-02): see the table below.
 - [ ] Try `Editor` on Paris and note how NPCs, doors and items are identified (input to Spike 2)
 - [x] Check whether `NoPause` already stops the game pausing when its window loses focus. **Yes:** it forces the game's `PauseOnFocusLoss` option off and stops the window minimising on focus loss. Reuse it for Part 9 Method 4. The pause menu itself (R6) still needs its own hook.
 - [ ] Try `OnlineTools` with a Peacock running on another PC (Part 1 option (a))
 
+### ZHMModSDK built-in mods
+
+What each built-in mod offers co-op, checked at SDK commit `d98355d` (2026-11-02). Reuse the approaches; copy code only where it meets the message rules in [docs/protocol.md](docs/protocol.md).
+
+| Mod | What it gives co-op | Where |
+|---|---|---|
+| **`Hitmen`** | **A two-player prototype by the SDK's author.** Adds a second, fully working 47 ("Agent48", the game's `agent47_default` template) through a small SMF brick (`[assembly:/_sdk/hitmen.brick]`), and drives him by writing the other player's input state into his `ZCharacterInputProcessor`, so his animations come from the game. Sends NPC positions from host to client by `ActorManager` slot number. Uses GameNetworkingSockets. **Dormant:** commented out of the SDK build, its GameNetworkingSockets dependency is commented out too, and its network code is commented out. The author's comments call it "extremely incredibly unsafe": it copies raw memory straight off the network, which R17 forbids. Also ships `multiplayer_hitmen.entity.json`, HITMAN 2's Sniper Assassin co-op level data. | Spikes 1, 4, 5; D008 |
+| **`Editor`** | A local JSON API over WebSocket on `127.0.0.1:46735` (`Mods/Editor/editor.d.ts`): list entities, get details, set properties and transforms, trigger entity pins (`signalEntityPin`), spawn entities, and "property changed" events. Identifies game entities by **(blueprint (TBLU) hash, entity ID)**. Scripts can drive it, so many spike questions can be tried before writing C++. Accepts connections from the same PC only: never expose it to the network. Also hooks `SignalInputPin`, `SignalOutputPin` and `SetPropertyValue`, the general way world state changes. | Spikes 2, 4; Part 9 tools |
+| **`AdvancedRating`** | Hooks `ZAchievementManagerSimple_OnEventSent`, which receives each game event as JSON (name and value), and reads the game's own state flags in `ZGameStatsManager` (trespassing spotted, body found, dead body seen). | Spikes 3, 6 |
+| **`Player`** | Hooks for weapon firing, getting hit (`ZActor_YouGotHit`) and security cameras. | Month 4 firing, Month 7 cameras |
+| **`Outfits`, `Randomizer`, `Assets`** | `ZHitman5_SetOutfit`, `ZActor_SetOutfit`, item creation and item spawners. | Spike 1 outfits, Month 4 disguises and items |
+| **`WakingUpNpcs`, `FreeCam`, `Editor`** | `ZActor_ReviveActor` and `ZActor_KillActor`. | Spike 4, Month 5 kills, knockouts, waking |
+| **`DebugMod`** | Inspects NPCs, AI behaviour and pathfinding (`ActorManager`, `BehaviorService`, `Pathfinder`). | Spikes 3, 4 |
+| **`QuickSave`** | Hooks `ZSaveSlotManager_QuickSave`. | Month 9: saves off in co-op |
+| **`Clumsy`** | Ragdoll functions (not related to the clumsy network tool in Part 9). | Body physics sync |
+| **`World`** | Changes the game-speed multiplier (`GameTimeManager`). Co-op must lock or sync it so one player can't slow time. | D010 |
+| **`FreelancerSeeder`** | Hooks Freelancer campaign generation, so both players could share one seed. | Year 2 Freelancer co-op |
+| **`NoPause`, `OnlineTools`** | See the checkboxes above. | Part 9, Part 1 |
+| `Noclip`, `TitaniumBullets`, `SkipIntro`, `MaxPatchLevel`, `DiscordRichPresence`, `DebugCheckKeyEntityEnabler` | Little or no use for co-op. | – |
+
+**SDK crash reporting:** the SDK can optionally send crash reports to the SDK author's Sentry project, if the player opts in. Crashes in this mod would go there too, so keep our own local crash dumps (#13) and mention this in the privacy notes.
+
 ### Prior work
 - [ ] Search the Peacock and Glacier modding Discords, GitHub and Nexus Mods for earlier co-op or multiplayer attempts on WoA, HITMAN 2 or HITMAN 2016
 - [ ] For any you find, write down how far they got, what blocked them and whether their code or notes are available
+- [x] **Found:** ZHMModSDK's own `Hitmen` mod, a dormant two-player prototype by the SDK's author (see [ZHMModSDK built-in mods](#zhmmodsdk-built-in-mods)). Ask the author how far it got and why it stopped (Contacts below).
 - [ ] Check the Ghost Mode and Sniper Assassin co-op research others have already done (input to Spike 5)
 
 ### Contacts (before Month 4)
@@ -115,6 +138,7 @@ Issue: [#1](https://github.com/appdoze/Hitman-WoA-Coop/issues/1)
 - [ ] Drive its position and rotation from recorded data.
 - [ ] Play locomotion animations on it: walk, run, crouch.
 - [ ] Change its outfit at runtime.
+- **Start from:** `Hitmen` already adds a second 47 through a small SMF brick and drives him by writing input state into his `ZCharacterInputProcessor`, so animations come from the game. Reuse the approach, not the code: it copies raw memory from the network (R17). `ZHitman5_SetOutfit` (`Outfits`, `Randomizer`) for outfit changes. See [ZHMModSDK built-in mods](#zhmmodsdk-built-in-mods).
 - **Pass:** a recorded walk is replayed by the puppet and looks right. **Fail:** you have no workable way to show the partner, so stop and rethink.
 
 ### Spike 2: Matching entities across machines
@@ -122,6 +146,7 @@ Issue: [#2](https://github.com/appdoze/Hitman-WoA-Coop/issues/2)
 - [ ] Find how NPCs, doors and items are identified in the scene and bricks, starting from the entity IDs ZHMModSDK exposes.
 - [ ] Prove the same NPC gets the same ID on two separate launches of the same mission.
 - [ ] Find what changes this: different loadouts, starting locations, difficulty or mission story state.
+- **Start from:** `Editor`'s local API identifies game entities by (blueprint (TBLU) hash, entity ID). A short script that calls `listEntities` on each PC and compares the results answers most of this spike. `Hitmen` used `ActorManager` slot numbers instead, which only works if both machines fill the list in the same order: test that too.
 - **Pass:** a stable ID for NPCs, doors and pickups in Paris. **Fail:** you need your own ID scheme, such as spawn order or position, which is fragile. Budget extra time.
 
 ### Spike 3: Can the AI perceive a second player?
@@ -129,6 +154,7 @@ Issue: [#3](https://github.com/appdoze/Hitman-WoA-Coop/issues/3)
 - [ ] Find what the AI checks for sight, hearing, disguise and enforcers. Is it hard-wired to the single local player?
 - [ ] Try making an NPC notice, become suspicious of, or attack the puppet from Spike 1.
 - [ ] Try forcing perception events by hand, for example "this NPC spotted the partner at position X".
+- **Start from:** `DebugMod` for inspecting NPCs and AI behaviour. `AdvancedRating` reads the game's own `ZGameStatsManager` flags (trespassing spotted, body found, dead body seen), a quick way to see whether the AI noticed the puppet.
 - **Pass:** guards react to the puppet in some controllable way. **Fail:** go with Tier 1 or Tier 2 (see Part 3).
 
 ### Spike 4: Can the client's world follow the host's?
@@ -138,12 +164,14 @@ Issue: [#4](https://github.com/appdoze/Hitman-WoA-Coop/issues/4)
 - [ ] Open a door on one machine and make it open on the other.
 - [ ] Launch the same mission on both machines with no syncing at all, and log NPC positions over time. How quickly do they drift apart? This shows how much the game relies on randomness and frame timing.
 - [ ] Try setting the same random seed on both machines. Does drift drop noticeably?
+- **Start from:** `Editor`'s API can set properties and transforms and trigger entity pins (`signalEntityPin`, such as a door's open input) from a script, before any C++. `ZActor_KillActor` and `ZActor_ReviveActor` for kills and waking. `Hitmen`'s NPC position sync for the NPC override test.
 - **Pass:** a single NPC and a single door stay in step for 10 minutes.
 
 ### Spike 5: Does WoA still contain usable multiplayer code?
 Issue: [#5](https://github.com/appdoze/Hitman-WoA-Coop/issues/5)
 - [ ] Look for Ghost Mode and Sniper Assassin co-op code paths in the WoA executable.
 - [ ] Peacock's `components/menus/sniper.ts` says official H3 Sniper Assassin "only returns one" character "because multiplayer is not supported", so don't assume the old co-op netcode still works.
+- **Start from:** the SDK's `ZPlayerRegistry.h` maps 4 player slots, each with a `ZNetPlayerController` that has a RakNet replica and a `m_bConnectedToMultiplayer` flag (commented "true for both players when in multiplayer"). `Hitmen` ships `multiplayer_hitmen.entity.json`, HITMAN 2's Sniper Assassin co-op level data with Stone, Knight, `ZSniperChallengeScoringEventReplicator` and `EntityPropertyReplica`. So the replication layer is still in the game; the question is now whether it can be used.
 - **If it's there:** it could replace much of Spikes 1 and 4. Re-plan around it.
 
 ### Spike 6: Tagging and injecting Peacock events
@@ -153,6 +181,7 @@ Issue: [#6](https://github.com/appdoze/Hitman-WoA-Coop/issues/6)
 - [ ] Try sending a synthetic event, such as a partner's kill, into the host's session, and check that scoring and challenges react to it.
 - [ ] Find which events the host's game sends when the *partner* kills or knocks out an NPC (likely an NPC death or "body found" with no clear cause). These are the events that would wrongly cost the host Silent Assassin or non-target kill penalties.
 - [ ] Check `MurderedBodySeen` in particular. When a non-target in the host's game sees a murdered body, Peacock (`components/eventHandler.ts`) sets `silentAssassinLost` for the rest of the mission, and killing the witness afterwards doesn't undo it. The only exemption is an `AccidentBodyFound` event with the same timestamp. So one guard seeing a body the *partner* left costs the host Silent Assassin for good, and so does a partner's accident kill if the host's game doesn't report it as an accident. Test both, and make sure the partner-action filter (see Fail below) covers this event.
+- **Start from:** `AdvancedRating` hooks `ZAchievementManagerSimple_OnEventSent`, which receives each game event as JSON. Check whether these are exactly the events sent to Peacock; if they are, that's the hook for tagging events with the player who caused them.
 - **Pass:** Peacock can tell which player caused each kill. **Fail:** score each player separately and merge the results at the end of the mission, with a filter rule: each player's session ignores deaths, knockouts and bodies that the mod says were caused by the partner. Without that rule, separate scoring still penalises the host for the partner's actions.
 
 ### Decision gate (end of Month 3)
