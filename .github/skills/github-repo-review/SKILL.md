@@ -101,6 +101,8 @@ Sources outside GitHub:
 - **Nexus Mods and ModDB** return 403 to scripts and link checkers (Nexus also builds its lists in the browser). Read them in a real browser instead, and add them to the link checker's ignore file; Nexus keyword search is `https://www.nexusmods.com/games/GAME/mods?keyword=WORD&sort=endorsements`. Record the date checked, and say that only mod pages were read, not mod files.
 - **Don't guess page addresses or IDs.** Look them up (for example GameBanana's search API, `https://gamebanana.com/apiv11/Util/Search/Results?_sModelName=Game&_sSearchString=WORD`) and confirm the page title before linking. A guessed numeric ID can land on an unrelated page that still returns 200.
 
+- **When outside sites can't be reached, search GitHub's code instead:** `gh search code "TEXT"` can confirm invite codes, server hostnames or tool sites, because other projects' readmes and source mention them (for example a Discord invite in a tool's readme, or a server hostname in a server's readme). Also check for GitHub mirrors of GitLab projects (`gh repo view ORG/NAME --json description`).
+
 Sites outside GitHub may be unreachable from the sandbox. Note which claims you couldn't check rather than guessing.
 
 ### 5. Check internal consistency
