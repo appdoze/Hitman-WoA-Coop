@@ -1,0 +1,54 @@
+# Build output
+build/
+out/
+cmake-build-*/
+CMakeUserPresets.json
+*.dll
+*.exe
+*.pdb
+*.lib
+*.exp
+*.ilk
+*.obj
+
+# IDEs
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Node (Peacock plugin, relay, tools)
+node_modules/
+dist/
+*.log
+.yarn/*
+!.yarn/releases
+!.yarn/plugins
+
+# Local test data: never commit profiles, logs or captures
+userdata/
+logs/
+*.dmp
+*.pcap
+*.pcapng
+recordings/
+message-logs/
+
+# Game files and reverse-engineering databases (see CONTRIBUTING.md)
+*.rpkg
+*.i64
+*.idb
+*.gzf
+*.bndb
+
+# Fuzzing output
+crash-*
+leak-*
+timeout-*
+corpus/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini

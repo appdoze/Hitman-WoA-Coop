@@ -12,7 +12,13 @@ Thanks for helping. The project is in the planning and research phase, so the mo
 2. Fork the repo and make your change on a branch.
 3. Open a pull request that explains what changed and why, and links the issue. The pull request template has a short checklist.
 
-Questions and ideas that aren't a specific task can go in a discussion once Discussions are turned on. Until then, open an issue.
+Questions and ideas that aren't a specific task can go in an issue with the `question` label.
+
+New to the project? The [glossary](docs/GLOSSARY.md) explains the terms used here. Issues labelled `help wanted` are open to anyone, and each [spike issue](https://github.com/appdoze/Hitman-WoA-Coop/issues?q=is%3Aissue+label%3Aspike) is a good place to start.
+
+To propose an answer to one of the roadmap's architecture decisions, follow [docs/decisions](docs/decisions/).
+
+Everyone taking part is expected to follow the [code of conduct](CODE_OF_CONDUCT.md).
 
 ## Ground rules
 

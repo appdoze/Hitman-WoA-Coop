@@ -20,7 +20,7 @@ Use GitHub's private vulnerability reporting: the **Security** tab of this repos
 - Steps or a small test case that reproduces it
 - Game build, platform, mod version and Peacock version
 
-Don't open a public issue, and don't post details in Discussions or Discord, until a fix is released.
+Don't open a public issue, and don't post details in comments or on Discord, until a fix is released.
 
 ## Supported versions
 

@@ -21,6 +21,19 @@ Plan for the first, hope for the last.
 - **ZHMModSDK mod (C++):** syncs players, NPCs and world state between the two games over a real-time network connection. The host's game controls the world; the client follows.
 - **Peacock plugin (TypeScript):** co-op lobbies, contract selection, and scoring and progression for both players. If Peacock's plugin hooks aren't enough, this becomes a Peacock fork with the co-op code kept as separate as possible.
 
+## Repository layout
+
+Planned. Folders are created when code for them starts.
+
+| Folder | Contents | Language |
+|---|---|---|
+| `mod/` | The ZHMModSDK mod: hooks, puppet, sync, network client | C++ (CMake) |
+| `peacock-plugin/` | Co-op lobbies, contract selection, scoring and progression for Peacock | TypeScript |
+| `relay/` | The relay server that forwards traffic between two players | To be decided |
+| `protocol/` | The network message schema, shared by the mod, relay and tools | Schema files |
+| `tools/` | Echo mode helpers, fake client and fake host, message replay, profile backup script | To be decided |
+| `docs/` | [Spike reports](docs/spikes/), [decision records](docs/decisions/) and the [glossary](docs/GLOSSARY.md) | Markdown |
+
 ## Requirements (planned)
 
 - A legitimate copy of HITMAN World of Assassination on Steam or Epic for **each** player
@@ -47,6 +60,9 @@ Co-op is experimental. Back up your Peacock `userdata` folder before playing. Th
 - How to help: [CONTRIBUTING.md](CONTRIBUTING.md)
 - Reporting security problems: [SECURITY.md](SECURITY.md)
 - Research results: [docs/spikes](docs/spikes/)
+- Decisions and why they were made: [docs/decisions](docs/decisions/)
+- Terms used in this project: [glossary](docs/GLOSSARY.md)
+- Code of conduct: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 
 ## Licence
 

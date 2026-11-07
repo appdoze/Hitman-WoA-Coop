@@ -1,5 +1,7 @@
 # Hitman WoA Co-op Mod (ZHMModSDK + Peacock)
 
+New to the terms used here? See the [glossary](docs/GLOSSARY.md). Work is tracked in [issues](https://github.com/appdoze/Hitman-WoA-Coop/issues) and [milestones](https://github.com/appdoze/Hitman-WoA-Coop/milestones), one milestone per month in Part 4.
+
 - [How this roadmap works](#how-this-roadmap-works)
 - [Part 0: Existing tools, prior work and contacts](#part-0-existing-tools-prior-work-and-contacts)
 - [Part 1: Architecture decisions](#part-1-architecture-decisions)
@@ -69,7 +71,7 @@ Don't build what already exists. Check these in Month 1.
 
 ## Part 1: Architecture decisions
 
-Settle these before writing feature code. Write the answers into this file.
+Settle these before writing feature code. Record each answer in [docs/decisions](docs/decisions/) (one file per decision, numbered D001–D018 in the order below), then tick it here.
 
 - [ ] **Network model:** the host machine controls the world (NPCs, AI, physics, story state). The client sends its inputs and actions to the host and shows the host's results.
 - [ ] **Two network channels:**
@@ -91,7 +93,7 @@ Settle these before writing feature code. Write the answers into this file.
 - [ ] **Pause behaviour:** the game must not pause in co-op. Opening the pause menu, map or inventory only covers the local screen. Decide what happens to saves, loading screens and the photo mode.
 - [ ] **Difficulty and settings:** both players use the host's difficulty, mission settings and starting conditions. Starting location and loadout can differ for each player.
 - [ ] **Crash recovery:** if either game crashes, the mission ends cleanly for the other player, and nobody loses progress already confirmed in Peacock.
-- [ ] **Licence:** Peacock is AGPL-3.0 and ZHMModSDK is GPL-3.0+. A fork you release, or host for other people, must publish its source. This repo uses AGPL-3.0, which is compatible with both. Keep co-op server code in a separate plugin or module where possible, to make rebasing on Peacock updates easier.
+- [x] **Licence:** *(Decided: [D014](docs/decisions/D014-licence.md).)* Peacock is AGPL-3.0 and ZHMModSDK is GPL-3.0+. A fork you release, or host for other people, must publish its source. This repo uses AGPL-3.0, which is compatible with both. Keep co-op server code in a separate plugin or module where possible, to make rebasing on Peacock updates easier.
 - [ ] **Installed mods must match:** content mods (Simple Mod Framework) can change levels, NPCs and items, which breaks entity IDs and sync. Hash the list of installed mods and their versions, and compare it in the handshake. Decide whether to block mismatches or only warn.
 - [ ] **DLC and location ownership:** both players must own the location being played. Use the entitlements Peacock already reads at login (`components/oauthToken.ts`, with the platform entitlement lists in `components/platformEntitlements.ts`; `components/ownership.ts` maps DLC packs to unlockable items) to grey out locations that either player doesn't own. Under server option (b), each player's Peacock only knows that player's entitlements, so the two players must exchange their owned locations, for example in the handshake.
 - [ ] **Steam and Epic together:** decide whether a Steam player and an Epic player can play together. Anything tied to one platform (Steam P2P, Steam Datagram Relay, Steam invites) only works if both players are on that platform.
@@ -106,6 +108,7 @@ Each test has a pass/fail outcome. Don't polish anything here. Throwaway code is
 Write each spike up in [docs/spikes](docs/spikes/) using [the template](docs/spikes/TEMPLATE.md), one file per spike.
 
 ### Spike 1: Remote player puppet
+Issue: [#1](https://github.com/appdoze/Hitman-WoA-Coop/issues/1)
 - [ ] Spawn a second 47 (or an NPC wearing 47's outfit) in a level, controlled by your code, not by the game's player controller.
 - [ ] Drive its position and rotation from recorded data.
 - [ ] Play locomotion animations on it: walk, run, crouch.
@@ -113,18 +116,21 @@ Write each spike up in [docs/spikes](docs/spikes/) using [the template](docs/spi
 - **Pass:** a recorded walk is replayed by the puppet and looks right. **Fail:** you have no workable way to show the partner, so stop and rethink.
 
 ### Spike 2: Matching entities across machines
+Issue: [#2](https://github.com/appdoze/Hitman-WoA-Coop/issues/2)
 - [ ] Find how NPCs, doors and items are identified in the scene and bricks, starting from the entity IDs ZHMModSDK exposes.
 - [ ] Prove the same NPC gets the same ID on two separate launches of the same mission.
 - [ ] Find what changes this: different loadouts, starting locations, difficulty or mission story state.
 - **Pass:** a stable ID for NPCs, doors and pickups in Paris. **Fail:** you need your own ID scheme, such as spawn order or position, which is fragile. Budget extra time.
 
 ### Spike 3: Can the AI perceive a second player?
+Issue: [#3](https://github.com/appdoze/Hitman-WoA-Coop/issues/3)
 - [ ] Find what the AI checks for sight, hearing, disguise and enforcers. Is it hard-wired to the single local player?
 - [ ] Try making an NPC notice, become suspicious of, or attack the puppet from Spike 1.
 - [ ] Try forcing perception events by hand, for example "this NPC spotted the partner at position X".
 - **Pass:** guards react to the puppet in some controllable way. **Fail:** go with Tier 1 or Tier 2 (see Part 3).
 
 ### Spike 4: Can the client's world follow the host's?
+Issue: [#4](https://github.com/appdoze/Hitman-WoA-Coop/issues/4)
 - [ ] On the client, override one NPC's position and state with the host's values every frame. Does the client's own AI fight you?
 - [ ] Kill or knock out an NPC on the host, and make the same thing happen on the client.
 - [ ] Open a door on one machine and make it open on the other.
@@ -133,11 +139,13 @@ Write each spike up in [docs/spikes](docs/spikes/) using [the template](docs/spi
 - **Pass:** a single NPC and a single door stay in step for 10 minutes.
 
 ### Spike 5: Does WoA still contain usable multiplayer code?
+Issue: [#5](https://github.com/appdoze/Hitman-WoA-Coop/issues/5)
 - [ ] Look for Ghost Mode and Sniper Assassin co-op code paths in the WoA executable.
 - [ ] Peacock's `components/menus/sniper.ts` says official H3 Sniper Assassin "only returns one" character "because multiplayer is not supported", so don't assume the old co-op netcode still works.
 - **If it's there:** it could replace much of Spikes 1 and 4. Re-plan around it.
 
 ### Spike 6: Tagging and injecting Peacock events
+Issue: [#6](https://github.com/appdoze/Hitman-WoA-Coop/issues/6)
 - [ ] Log the full event stream each game sends to Peacock (`SaveAndSynchronizeEvents4` / `SaveEvents2` in `components/eventHandler.ts`) during a short mission.
 - [ ] Try adding a custom field to outgoing events, such as the ID of the player who caused it. The game builds and sends these events itself, so this needs a hook on the game's event sending in the mod, or a small proxy between the game and Peacock. A Peacock plugin alone can't know who caused an event.
 - [ ] Try sending a synthetic event, such as a partner's kill, into the host's session, and check that scoring and challenges react to it.
