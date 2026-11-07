@@ -17,7 +17,7 @@ body:
         - "Spike 2: Matching entities across machines"
         - "Spike 3: Can the AI perceive a second player?"
         - "Spike 4: Can the client's world follow the host's?"
-        - "Spike 5: Does WoA still contain usable multiplayer code?"
+        - "Spike 5: Can the game's own multiplayer carry co-op?"
         - "Spike 6: Tagging and injecting Peacock events"
     validations:
       required: true

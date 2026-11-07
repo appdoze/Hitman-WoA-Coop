@@ -79,15 +79,30 @@ What each built-in mod offers co-op, checked at SDK commit `d98355d` (2026-11-02
 
 **SDK crash reporting:** the SDK can optionally send crash reports to the SDK author's Sentry project, if the player opts in. Crashes in this mod would go there too, so keep our own local crash dumps (#13) and mention this in the privacy notes.
 
+### Community mods (Nexus Mods)
+
+Checked on 2026-11-07 by searching [Nexus Mods](https://www.nexusmods.com/games/hitman3/mods) for multiplayer, co-op, ghost, sniper, NPC, spawn, AI, Peacock, online, editor, SDK and scoring. Most of the 966 mods are visual or gameplay tweaks. Only the mod pages were read; no mod files were downloaded or inspected.
+
+| Mod | What it shows | Where |
+|---|---|---|
+| [Ghost Mode](https://www.nexusmods.com/hitman3/mods/260) (MrMike and Anthony Fuller, updated Dec 2025) | **WoA's own multiplayer still works.** Ports HITMAN 2's Ghost Mode to WoA: two players in separate worlds, connected through Steam invites and a community server (LocalGhost or Peacock). **Steam only, no Epic.** Known issues: occasional crashes, and the opponent appears as a black silhouette. | Spike 5, Tier 1, D017 |
+| [Sniper Co-op](https://www.nexusmods.com/hitman3/mods/444) (Jan 2023) | **Two players in one shared world** on the Sniper Assassin maps, in WoA. Needs Peacock, Steam only, both players on the same Peacock server (the host may need open ports), and the Ghost Mode mod to avoid a crash. | Spike 5, Spike 4, Tier 2 |
+| [Ghost Mode - Haven Island](https://www.nexusmods.com/hitman3/mods/890) | Adds a new map to Ghost Mode through content changes and a modified server, so the game's own multiplayer isn't locked to its original maps. | Spike 5 |
+| [Ghost Mode Emotes](https://www.nexusmods.com/hitman3/mods/558) | Restores HITMAN 2's Ghost Mode emote menu: a ready-made way for partners to signal each other. | Month 10 quick pings |
+| [LocalGhost](https://gitlab.com/grappigegovert/localghost) (GitLab, zlib licence) | The open-source server Ghost Mode was first played on after IOI's servers closed, and where Peacock started. | Spike 5, Peacock side |
+| [AI Sight Modifications](https://www.nexusmods.com/hitman3/mods/645), [Blind NPCs](https://www.nexusmods.com/hitman3/mods/363), [AI Playground](https://www.nexusmods.com/hitman3/mods/364) (succeeded by "Reality Control"), [All NPCs Follow Hitman](https://www.nexusmods.com/hitman3/mods/271) | Change NPC and camera vision and behaviour through level data alone, which shows where perception is set up. | Spike 3 |
+| [Offline Scoring](https://www.nexusmods.com/hitman3/mods/68) | Custom scoring, including tracking of security camera recordings. | Spike 6 |
+
 ### Prior work
 - [ ] Search the Peacock and Glacier modding Discords, GitHub and Nexus Mods for earlier co-op or multiplayer attempts on WoA, HITMAN 2 or HITMAN 2016
 - [ ] For any you find, write down how far they got, what blocked them and whether their code or notes are available
 - [x] **Found:** ZHMModSDK's own `Hitmen` mod, a dormant two-player prototype by the SDK's author (see [ZHMModSDK built-in mods](#zhmmodsdk-built-in-mods)). Ask the author how far it got and why it stopped (Contacts below).
-- [ ] Check the Ghost Mode and Sniper Assassin co-op research others have already done (input to Spike 5)
+- [x] Check the Ghost Mode and Sniper Assassin co-op research others have already done (input to Spike 5). **Found:** both run in WoA on Steam today through community mods and Peacock or LocalGhost. See [Community mods](#community-mods-nexus-mods).
 
 ### Contacts (before Month 4)
 - [ ] Introduce the project to the Peacock developers (Discord, linked from the Peacock readme). Ask about plans for `RegisterToPreset`, multiplayer and plugin hooks, and whether co-op changes could go upstream.
-- [ ] Introduce the project to the ZHMModSDK developer. Ask whether hooks you need (player spawning, AI perception, entity IDs) already exist or would be accepted upstream.
+- [ ] Introduce the project to the ZHMModSDK developer. Ask whether hooks you need (player spawning, AI perception, entity IDs) already exist or would be accepted upstream, and how far the `Hitmen` prototype got and why it stopped.
+- [ ] Contact the authors of the Ghost Mode port (MrMike and Anthony Fuller) and of Sniper Co-op. Ask how the game's own multiplayer is connected (Steam networking, RakNet), what causes the crashes, whether it could carry a normal mission, and whether they'd share notes. **Do this in Month 1: it shapes Spike 5.**
 - [ ] Share Spike results with both communities. Upstream hooks are maintained by others after game patches, which lowers R7.
 
 ---
@@ -154,7 +169,7 @@ Issue: [#3](https://github.com/appdoze/Hitman-WoA-Coop/issues/3)
 - [ ] Find what the AI checks for sight, hearing, disguise and enforcers. Is it hard-wired to the single local player?
 - [ ] Try making an NPC notice, become suspicious of, or attack the puppet from Spike 1.
 - [ ] Try forcing perception events by hand, for example "this NPC spotted the partner at position X".
-- **Start from:** `DebugMod` for inspecting NPCs and AI behaviour. `AdvancedRating` reads the game's own `ZGameStatsManager` flags (trespassing spotted, body found, dead body seen), a quick way to see whether the AI noticed the puppet.
+- **Start from:** `DebugMod` for inspecting NPCs and AI behaviour. `AdvancedRating` reads the game's own `ZGameStatsManager` flags (trespassing spotted, body found, dead body seen), a quick way to see whether the AI noticed the puppet. The Nexus mods [AI Sight Modifications, Blind NPCs and AI Playground](#community-mods-nexus-mods) change NPC vision and behaviour through level data alone, which shows where perception is set up.
 - **Pass:** guards react to the puppet in some controllable way. **Fail:** go with Tier 1 or Tier 2 (see Part 3).
 
 ### Spike 4: Can the client's world follow the host's?
@@ -167,12 +182,19 @@ Issue: [#4](https://github.com/appdoze/Hitman-WoA-Coop/issues/4)
 - **Start from:** `Editor`'s API can set properties and transforms and trigger entity pins (`signalEntityPin`, such as a door's open input) from a script, before any C++. `ZActor_KillActor` and `ZActor_ReviveActor` for kills and waking. `Hitmen`'s NPC position sync for the NPC override test.
 - **Pass:** a single NPC and a single door stay in step for 10 minutes.
 
-### Spike 5: Does WoA still contain usable multiplayer code?
+### Spike 5: Can the game's own multiplayer carry co-op?
 Issue: [#5](https://github.com/appdoze/Hitman-WoA-Coop/issues/5)
-- [ ] Look for Ghost Mode and Sniper Assassin co-op code paths in the WoA executable.
-- [ ] Peacock's `components/menus/sniper.ts` says official H3 Sniper Assassin "only returns one" character "because multiplayer is not supported", so don't assume the old co-op netcode still works.
-- **Start from:** the SDK's `ZPlayerRegistry.h` maps 4 player slots, each with a `ZNetPlayerController` that has a RakNet replica and a `m_bConnectedToMultiplayer` flag (commented "true for both players when in multiplayer"). `Hitmen` ships `multiplayer_hitmen.entity.json`, HITMAN 2's Sniper Assassin co-op level data with Stone, Knight, `ZSniperChallengeScoringEventReplicator` and `EntityPropertyReplica`. So the replication layer is still in the game; the question is now whether it can be used.
-- **If it's there:** it could replace much of Spikes 1 and 4. Re-plan around it.
+
+**Re-planned on 2026-11-07.** Community mods show the game's own multiplayer still works in WoA on Steam: [Ghost Mode](#community-mods-nexus-mods) (separate worlds) and [Sniper Co-op](#community-mods-nexus-mods) (one shared world). So the question is no longer "is it there?" but "how far can it go?". **Run this spike first, from Month 1:** its result decides how much of Spikes 1 and 4 is needed.
+
+- [ ] On two Steam PCs, install Ghost Mode and Sniper Co-op and play one match of each through Peacock. Write down what works, what crashes and what each player sees.
+- [ ] Find how the two games connect: Steam networking, RakNet (`ZRakNetReplica` in the SDK's `ZPlayerRegistry.h`) or both, and what Peacock's role is (`components/multiplayer/`, and `components/menus/sniper.ts`, which returns two characters for multiplayer).
+- [ ] Find what is replicated in Sniper Co-op: player positions and animations, NPCs, kills, items, doors, scoring (`ZSniperChallengeScoringEventReplicator`, `EntityPropertyReplica`).
+- [ ] Try loading a normal mission (Paris or ICA Facility) in a multiplayer session, for example by pointing a Sniper Co-op or Ghost Mode preset at a normal contract. Do both players appear? What stays in sync?
+- [ ] Check whether any of it works on Epic.
+- **Start from:** the SDK's `ZPlayerRegistry.h` maps 4 player slots, each with a `ZNetPlayerController` that has a RakNet replica and a `m_bConnectedToMultiplayer` flag (commented "true for both players when in multiplayer"). `Hitmen` ships `multiplayer_hitmen.entity.json`, HITMAN 2's Sniper Assassin co-op level data with Stone, Knight, `ZSniperChallengeScoringEventReplicator` and `EntityPropertyReplica`. The Ghost Mode and Sniper Co-op mods, [LocalGhost](https://gitlab.com/grappigegovert/localghost) and their authors (Part 0 Contacts).
+- **Pass:** a normal mission loads with both players in the game's own multiplayer session and both 47s visible, and at least kills or NPC positions stay in sync. **Partial:** it only works in Ghost Mode or on Sniper Assassin maps; Tier 1 can still build on Ghost Mode. **Fail:** the game's own multiplayer can't be used outside its original modes; carry on with our own netcode (Spikes 1 and 4).
+- **If it passes:** re-plan Spikes 1 and 4, Months 4–5 and D008 around the game's own netcode. This path is Steam only (R19, D017).
 
 ### Spike 6: Tagging and injecting Peacock events
 Issue: [#6](https://github.com/appdoze/Hitman-WoA-Coop/issues/6)
@@ -181,7 +203,7 @@ Issue: [#6](https://github.com/appdoze/Hitman-WoA-Coop/issues/6)
 - [ ] Try sending a synthetic event, such as a partner's kill, into the host's session, and check that scoring and challenges react to it.
 - [ ] Find which events the host's game sends when the *partner* kills or knocks out an NPC (likely an NPC death or "body found" with no clear cause). These are the events that would wrongly cost the host Silent Assassin or non-target kill penalties.
 - [ ] Check `MurderedBodySeen` in particular. When a non-target in the host's game sees a murdered body, Peacock (`components/eventHandler.ts`) sets `silentAssassinLost` for the rest of the mission, and killing the witness afterwards doesn't undo it. The only exemption is an `AccidentBodyFound` event with the same timestamp. So one guard seeing a body the *partner* left costs the host Silent Assassin for good, and so does a partner's accident kill if the host's game doesn't report it as an accident. Test both, and make sure the partner-action filter (see Fail below) covers this event.
-- **Start from:** `AdvancedRating` hooks `ZAchievementManagerSimple_OnEventSent`, which receives each game event as JSON. Check whether these are exactly the events sent to Peacock; if they are, that's the hook for tagging events with the player who caused them.
+- **Start from:** `AdvancedRating` hooks `ZAchievementManagerSimple_OnEventSent`, which receives each game event as JSON. Check whether these are exactly the events sent to Peacock; if they are, that's the hook for tagging events with the player who caused them. The Nexus mod [Offline Scoring](#community-mods-nexus-mods) is a reference for custom scoring, including camera recordings.
 - **Pass:** Peacock can tell which player caused each kill. **Fail:** score each player separately and merge the results at the end of the mission, with a filter rule: each player's session ignores deaths, knockouts and bodies that the mod says were caused by the partner. Without that rule, separate scoring still penalises the host for the partner's actions.
 
 ### Decision gate (end of Month 3)
@@ -203,7 +225,7 @@ Issue: [#6](https://github.com/appdoze/Hitman-WoA-Coop/issues/6)
 | Needs which spikes to pass | 1 | 1, 2, 4 | 1–4 |
 | Realistic in year 1 | Several maps | 2–4 maps | 1–2 maps, rough |
 
-- **Tier 1:** like the old Ghost Mode, but working together. Both players play the same contract in separate worlds, the partner shows up as a ghost, target deaths are shared, and scores are combined. Least risk. You can ship it even if Spike 3 fails.
+- **Tier 1:** like the old Ghost Mode, but working together. Both players play the same contract in separate worlds, the partner shows up as a ghost, target deaths are shared, and scores are combined. Least risk. You can ship it even if Spike 3 fails. Since the [Ghost Mode](#community-mods-nexus-mods) port shows the game's own separate-worlds multiplayer works on Steam, Tier 1 might be built on that instead of our own netcode (Spike 5).
 - **Tier 2:** a real shared world, but guards are effectively blind to the partner. Gameplay works if you treat the partner as a "support" role, or add forced detection for actions that should obviously be seen, such as shooting in front of a guard.
 - **Tier 3:** what the original roadmap assumed. Only commit to it if Spike 3 clearly passes.
 
@@ -224,13 +246,14 @@ Issues: [Month 1 milestone](https://github.com/appdoze/Hitman-WoA-Coop/milestone
 - [ ] CI build for the mod and the Peacock fork, so every commit produces a test build
 - [ ] Crash dump collection for the mod
 - [ ] Echo mode switch in the mod (Part 9, Method 1), ready for Spike 1
+- [ ] Start Spike 5 (play Ghost Mode and Sniper Co-op on two Steam PCs) and contact their authors
 - [ ] Start Spikes 1 and 2
 
 ### Month 2: Spikes
 - [ ] Settle the decisions that don't need spike results: D006, D007, D008, D010, D012, D013, D015, D017, D018 (issues #16–#24, see [docs/decisions](docs/decisions/))
 - [ ] Finish Spikes 1 and 2
 - [ ] Start Spikes 3 and 4
-- [ ] Spike 5 in parallel, if someone has spare time
+- [ ] Finish Spike 5 first, and adjust Spikes 1 and 4 to its result
 - [ ] Spike 6 in parallel. Logging the event stream is Peacock-only work; tagging events with the player who caused them needs a mod-side hook (or a proxy in front of Peacock).
 
 ### Month 3: Spikes and decision gate
@@ -301,7 +324,7 @@ Issues: [Month 1 milestone](https://github.com/appdoze/Hitman-WoA-Coop/milestone
 
 ### Month 10: Interface and contracts
 - [ ] Partner marker in the game and on the minimap
-- [ ] Quick pings
+- [ ] Quick pings (the [Ghost Mode Emotes](#community-mods-nexus-mods) mod restores HITMAN 2's emote menu, a possible starting point)
 - [ ] Shared notifications ("Partner spotted", "Body found")
 - [ ] Loadout screen for each player
 - [ ] Results screen showing both players
@@ -393,6 +416,7 @@ Review this at the decision gate and at the end of every month. Update the statu
 | R16 | Steam-only networking excludes Epic players | Medium | Steam and Epic players can't play together | Choosing Steam P2P or Steam Datagram Relay | Platform-neutral relay by default; Steam networking only for Steam-only lobbies | Open |
 | R17 | Malformed messages crash or exploit a player's game, Peacock or the relay | Medium | Crashes, remote code execution, players stop trusting the mod | Fuzz-test crashes, reports through SECURITY.md | Format checks from Month 4; fuzz tests in CI; gameplay checks and rate limits in Month 9; private reporting through SECURITY.md | Open |
 | R18 | Relay abused as an open proxy | Low | Relay operator blamed for others' traffic; relay shut down | Unknown traffic through the relay | Relay only forwards between two peers in the same match, after the handshake; rate limits | Open |
+| R19 | Building on the game's own multiplayer ties co-op to Steam and to its known crashes | Medium | Epic players left out; crashes we can't fix in our own code | Spike 5 results; Ghost Mode and Sniper Co-op known issues | Decide in D017; keep our own netcode as the fallback; talk to the Ghost Mode and Sniper Co-op authors about the crashes | Open |
 
 ---
 
