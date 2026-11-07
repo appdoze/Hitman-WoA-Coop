@@ -9,6 +9,7 @@
 - [Part 6: Year 2 and beyond](#part-6-year-2-and-beyond)
 - [Part 7: Risk register](#part-7-risk-register)
 - [Part 8: Definition of done and metrics](#part-8-definition-of-done-and-metrics)
+- [Part 9: Solo development setup](#part-9-solo-development-setup)
 
 ---
 
@@ -138,6 +139,7 @@ Months 4–12 assume Tier 2. Under Tier 1, skip the NPC and world sync items and
 - [ ] Logging from the mod to a file, with timestamps, on both machines
 - [ ] CI build for the mod and the Peacock fork, so every commit produces a test build
 - [ ] Crash dump collection for the mod
+- [ ] Echo mode switch in the mod (Part 9, Method 1), ready for Spike 1
 - [ ] Start Spikes 1 and 2
 
 ### Month 2: Spikes
@@ -160,6 +162,7 @@ Months 4–12 assume Tier 2. Under Tier 1, skip the NPC and world sync items and
 - [ ] Sync held and visible items
 - [ ] Name tag over the partner
 - [ ] Message log: write every network message to a file with its mission-clock timestamp, on both machines
+- [ ] Fake client program (Part 9, Method 2) that joins as player 2 and walks a scripted path
 - **Milestone:** two players walk around Paris together and see each other move smoothly
 
 ### Month 5: NPC and world basics (Paris)
@@ -314,3 +317,42 @@ Record these at the end of every month from your test runs. A milestone isn't me
 | Scoring accuracy | Test runs where both profiles get the expected rating, Silent Assassin status and XP | 100% on Silent Assassin test runs |
 | Disconnect handling | Test disconnects where both players end cleanly with progress kept | 100% |
 | Map coverage | Maps with every Part 5 box ticked | 2–4 |
+
+---
+
+## Part 9: Solo development setup
+
+How to build and test the mod on one PC, without a second person. Rough split: about 90% of development uses methods 1–3, method 4 is for milestone checks, and real people are only for the per-map checks and the beta.
+
+### Method 1: Echo mode (from Month 1)
+A debug switch in the mod that sends your own network messages back to yourself:
+- [ ] Pack your own 47's position, animation state, disguise and actions into protocol messages
+- [ ] Send them over loopback with an artificial delay (default 150 ms, adjustable)
+- [ ] Drive the Spike 1 puppet from those messages, so a copy of you follows about a second behind
+- Tests: Spike 1, Spike 3 (walk the puppet past guards), Month 4 player sync and smoothing, the message format, and lag handling, all in a single game.
+
+### Method 2: Fake partner program (from Month 4)
+A small standalone program that speaks the co-op protocol and pretends to be player 2:
+- [ ] **Fake client:** joins the real game running as host, walks a recorded or scripted path, and sends scripted actions ("knocked out NPC #412", "opened door #88"). Tests the host side.
+- [ ] **Fake host:** plays back a host message log (Month 4 log, Month 5 replay tool) into the real game running as client. Tests the client side.
+- [ ] Scripted test scenarios that run without anyone at the keyboard, as regression tests
+- This only works if the protocol has stable entity IDs and a clean, versioned message format (Part 1 and Spike 2). Keep it that way.
+
+### Method 3: Peacock tests without the game (from Month 2)
+- [ ] Scripted HTTP tests against the Peacock fork with two fake profiles: log in, `RegisterToMatch`, send events, check scoring and progression for both
+- [ ] **Dev-only profile override.** Peacock keys each profile to the `steam_userid` or `epic_userid` the game sends at login (`components/oauthToken.ts`), so two copies of the game on one account become the same profile. Either run two Peacock servers on different ports, or add a dev flag that gives the second connection a different fake user ID. Never enable this outside development.
+
+### Method 4: Two copies of the game on one PC (milestone checks only)
+- [ ] Find out what stops a second launch (Steam, and any single-instance check in the game itself) and handle it in the mod for development builds
+- [ ] Run the second copy windowed, at low resolution and low settings. Plan for 32 GB of RAM.
+- [ ] Stop the game pausing or freezing when its window loses focus (likely needs a hook)
+- [ ] Each copy uses its own Peacock profile (Method 3 override)
+- Alternative: a Hyper-V virtual machine with GPU partitioning (Windows 11 Pro; community scripts such as Easy-GPU-PV). More isolated, but fiddlier to set up.
+
+### Method 5: Bad-connection testing on one PC
+- [ ] **clumsy** (free Windows tool) to add lag, packet loss and reordering, including to loopback traffic between two programs on the same PC
+- [ ] If you use GameNetworkingSockets, its built-in fake lag and loss settings may be enough on their own
+
+### Method 6: Real people (Month 11 onward)
+- [ ] Per-map two-player runs (Part 5), outside testing (Month 11) and the beta
+- [ ] Rent a cloud gaming PC by the hour and connect with Parsec, or recruit testers from the Peacock and Hitman modding communities, who already have Peacock set up
