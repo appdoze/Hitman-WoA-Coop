@@ -346,11 +346,11 @@ Review this at the decision gate and at the end of every month. Update the statu
 | R11 | Players run different content mods | High | Entity IDs differ, instant out-of-sync | Handshake mods-hash mismatch | Compare mods hash in handshake; block or warn | Open |
 | R12 | Partner doesn't own a location or DLC | Medium | Can't join, or game crashes on load | Ownership check in lobby | Only offer locations both players own | Open |
 | R13 | Player IP addresses exposed over P2P | Medium | Privacy and harassment risk | Direct connection used | Self-hosted relay by default; warn before direct connection; no automatic port opening | Open |
+| R14 | Co-op bug corrupts or loses a Peacock profile | Medium | Players lose progress, lose trust | Profile validation errors, tester reports | Automatic profile backup before every co-op mission; validate profile writes | Open |
+| R15 | Duplicated work with another co-op project or upstream | Low | Wasted months | Part 0 search, community contacts | Search and make contact in Month 1; collaborate or reuse | Open |
 | R16 | Steam-only networking excludes Epic players | Medium | Steam and Epic players can't play together | Choosing Steam P2P or Steam Datagram Relay | Platform-neutral relay by default; Steam networking only for Steam-only lobbies | Open |
 | R17 | Malformed messages crash or exploit a player's game, Peacock or the relay | Medium | Crashes, remote code execution, players stop trusting the mod | Fuzz-test crashes, reports through SECURITY.md | Format checks from Month 4; fuzz tests in CI; gameplay checks and rate limits in Month 9; private reporting through SECURITY.md | Open |
 | R18 | Relay abused as an open proxy | Low | Relay operator blamed for others' traffic; relay shut down | Unknown traffic through the relay | Relay only forwards between two peers in the same match, after the handshake; rate limits | Open |
-| R14 | Co-op bug corrupts or loses a Peacock profile | Medium | Players lose progress, lose trust | Profile validation errors, tester reports | Automatic profile backup before every co-op mission; validate profile writes | Open |
-| R15 | Duplicated work with another co-op project or upstream | Low | Wasted months | Part 0 search, community contacts | Search and make contact in Month 1; collaborate or reuse | Open |
 
 ---
 
