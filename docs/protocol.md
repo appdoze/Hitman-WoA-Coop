@@ -7,7 +7,7 @@ This lists the messages the mod, relay and tools exchange, so that echo mode ([#
 ## Rules for every message
 
 - Starts with a header: protocol version, message type, length, sequence number and mission-clock timestamp.
-- The protocol version is always the **first 2 bytes** of every message, in the same encoding, in every version of the protocol. It must never move, so any build can read it and reply "wrong version" before trying to parse the rest.
+- The protocol version is always the **first 2 bytes** of every message, in the same encoding, in every version of the protocol. It must never move, so any build can read it and reply "wrong version" before trying to parse the rest. It's a plain prefix in front of the encoded message, not a field inside the schema chosen in D008, so changing or replacing that schema can never move it. Its byte order is fixed once in D007 and never changes.
 - Is checked before anything uses it: length within the limit for its type, known message type, every field in range, every entity ID known for the current mission. Anything that fails is dropped and logged, never passed to game code ([R17](../WOA_COOP_ROADMAP.md#part-7-risk-register)).
 - Never contains raw C++ structs, pointers or memory addresses.
 - Never contains IP addresses, Steam or Epic user IDs or account names. Players are identified by a per-match player number (0 = host, 1 = client).
@@ -32,7 +32,7 @@ Any mismatch or failed check ends the connection with a clear error to both play
 | Field | Purpose | Decision |
 |---|---|---|
 | Protocol version | Message format must match (always the first 2 bytes, see above) | D007 |
-| Match ID and join secret | From the Peacock lobby (invite code). Proves the peer belongs to this match. The relay checks them too, and forwards nothing until they match (R18). | D003, D018 |
+| Match ID and join proof | From the Peacock lobby (invite code). Proves the peer belongs to this match. The join secret itself is **never sent**: each side proves it knows the secret by answering a random challenge from the other (for example an HMAC of the challenge). The relay gets a separate relay token derived from the secret, so the relay operator, or anyone who can see relay traffic before encryption starts, can't use what they see to join the match. The relay forwards nothing until the token matches (R18). | D003, D018 |
 | Mod version | Same mod build on both sides | D006 |
 | Game build | Same game build | D006 |
 | Platform (Steam or Epic) | Sent for information. Only a mismatch if D017 rules out playing across platforms. | D017 |
@@ -73,4 +73,4 @@ Every `PlayerAction` and `WorldEvent` carries the player number of whoever cause
 - Whether `NpcState` is needed at all, or `WorldEvent`s are enough (Spike 4, design tier)
 - Maximum message sizes and rates for each type (Month 9 bandwidth work)
 - Whether the relay needs to read anything beyond the match ID and join secret, or only forwards encrypted traffic (D018)
-- How the join secret is generated, shared with both players by Peacock, and expired after the match (D003, D018)
+- How the join secret is generated, shared with both players by Peacock, and expired after the match, and how the relay token is derived from it (D003, D018). Peacock's match data (`SetMatchData`) is readable by every participant in the match, so check what else can read it before storing the secret there.
