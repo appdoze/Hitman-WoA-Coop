@@ -28,6 +28,8 @@ dist/
 
 # Local test data: never commit profiles, logs or captures
 userdata/
+userdata-*/
+backups/
 logs/
 *.dmp
 *.pcap

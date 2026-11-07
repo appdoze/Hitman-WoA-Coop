@@ -31,6 +31,7 @@ Planned. Folders are created when code for them starts.
 | `peacock-plugin/` | Co-op lobbies, contract selection, scoring and progression for Peacock | TypeScript |
 | `relay/` | The relay server that forwards traffic between two players | To be decided |
 | `protocol/` | The network message schema, shared by the mod, relay and tools | Schema files |
+| `fuzz/` | Fuzz tests for the message parser (from Month 4, R17). Seed inputs are committed; generated crashes aren't. | C++ (libFuzzer) |
 | `tools/` | Echo mode helpers, fake client and fake host, message replay, profile backup script | To be decided |
 | `docs/` | [Spike reports](docs/spikes/), [decision records](docs/decisions/) and the [glossary](docs/GLOSSARY.md) | Markdown |
 
