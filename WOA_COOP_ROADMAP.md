@@ -1,0 +1,269 @@
+# Hitman WoA Co-op Mod (ZHMModSDK + Peacock)
+
+- [How this roadmap works](#how-this-roadmap-works)
+- [Part 1: Architecture decisions](#part-1-architecture-decisions)
+- [Part 2: Risk spikes (do these first)](#part-2-risk-spikes-do-these-first)
+- [Part 3: Design tiers](#part-3-design-tiers)
+- [Part 4: 12-month roadmap](#part-4-12-month-roadmap)
+- [Part 5: Per-map checklist](#part-5-per-map-checklist)
+- [Part 6: Year 2 and beyond](#part-6-year-2-and-beyond)
+- [Part 7: Risk register](#part-7-risk-register)
+- [Part 8: Definition of done and metrics](#part-8-definition-of-done-and-metrics)
+
+---
+
+## How this roadmap works
+
+- **Risk first.** The parts that might be impossible come before the parts that are only tedious. Menus, Peacock and game modes are low risk, so they come late.
+- **One map at a time.** One map fully working is worth more than ten maps half working. Each new map gets the per-map checklist in Part 5.
+- **Decision gates.** At the end of Month 3 you pick a design tier (Part 3) based on what the tests actually showed, and the rest of the plan follows that tier.
+- **Sizing.** These estimates assume one to three people working part time. With more people or full-time work, compress the timeline. Don't add scope.
+
+### Where the work actually is
+
+| Area | Tool | Share of effort |
+|---|---|---|
+| Live game state: players, NPCs, AI, world, physics | ZHMModSDK (C++ hooks into Glacier 2) | ~80% |
+| Real-time networking | ENet, GameNetworkingSockets or Steam P2P | ~10% |
+| Lobbies, contracts, scoring, progression, menus | Peacock (Node/TypeScript server) | ~10% |
+
+Peacock never touches what happens inside a running mission. It only sees the events each game sends it and serves menu and contract data back.
+
+---
+
+## Part 1: Architecture decisions
+
+Settle these before writing feature code. Write the answers into this file.
+
+- [ ] **Network model:** the host machine controls the world (NPCs, AI, physics, story state). The client sends its inputs and actions to the host and shows the host's results.
+- [ ] **Two network channels:**
+  - Real-time channel (P2P library) for positions, animations and world events.
+  - Peacock for lobbies, contract selection and end-of-mission scoring. Peacock's push messages only reach the game when it sends its regular event updates, which takes seconds, so never use them for gameplay.
+- [ ] **Peacock server setup.** Most players run Peacock on their own PC. Choose one:
+  - (a) Both games connect to one shared Peacock run by the host. Simplest, but the host needs a reachable port, or you need a relay.
+  - (b) Each player keeps a local Peacock, and the mod syncs only the match and results data between them.
+- [ ] **Player identity:** two separate Peacock profiles, each with its own `unique_name`. Decide where the partner's profile ID comes from.
+- [ ] **Event authority for scoring:** each game reports events from its own point of view. When the partner kills someone, the host's game sees an NPC dying to an unknown cause, which can break Silent Assassin, challenges and ratings. Decide:
+  - Whose event stream Peacock trusts for which events
+  - How you tag events with the player who caused them
+  - How you remove duplicate events reported by both games
+- [ ] **Version locking:** the mod checks the game build and refuses to run on a mismatch. Both players must run the same mod version, so check it in the handshake.
+- [ ] **Protocol versioning:** a network protocol version number, separate from the mod version. Bump it whenever the message format changes, and reject mismatches in the handshake with a clear error.
+- [ ] **Message format:** pick a compact binary schema (for example FlatBuffers, Protobuf or a hand-written versioned format). Never send raw C++ structs or pointers.
+- [ ] **Randomness:** find out where the game uses random numbers (NPC routines, reactions, loot, crowds). Decide whether to sync the seed at mission start or send every random outcome from the host.
+- [ ] **Clock and timing:** a shared mission clock (host time plus measured offset) for timestamping events, smoothing movement and timing the mission.
+- [ ] **Pause behaviour:** the game must not pause in co-op. Opening the pause menu, map or inventory only covers the local screen. Decide what happens to saves, loading screens and the photo mode.
+- [ ] **Difficulty and settings:** both players use the host's difficulty, mission settings and starting conditions. Starting location and loadout can differ for each player.
+- [ ] **Crash recovery:** if either game crashes, the mission ends cleanly for the other player, and nobody loses progress already confirmed in Peacock.
+- [ ] **Licence:** Peacock is AGPL-3.0. A fork you release, or host for other people, must publish its source. Keep co-op server code in a separate plugin or module where possible, to make rebasing on Peacock updates easier.
+
+---
+
+## Part 2: Risk spikes (do these first)
+
+Each test has a pass/fail outcome. Don't polish anything here. Throwaway code is fine.
+
+### Spike 1: Remote player puppet
+- [ ] Spawn a second 47 (or an NPC wearing 47's outfit) in a level, controlled by your code, not by the game's player controller.
+- [ ] Drive its position and rotation from recorded data.
+- [ ] Play locomotion animations on it: walk, run, crouch.
+- [ ] Change its outfit at runtime.
+- **Pass:** a recorded walk is replayed by the puppet and looks right. **Fail:** you have no workable way to show the partner, so stop and rethink.
+
+### Spike 2: Matching entities across machines
+- [ ] Find how NPCs, doors and items are identified in the scene and bricks, starting from the entity IDs ZHMModSDK exposes.
+- [ ] Prove the same NPC gets the same ID on two separate launches of the same mission.
+- [ ] Find what changes this: different loadouts, starting locations, difficulty or mission story state.
+- **Pass:** a stable ID for NPCs, doors and pickups in Paris. **Fail:** you need your own ID scheme, such as spawn order or position, which is fragile. Budget extra time.
+
+### Spike 3: Can the AI perceive a second player?
+- [ ] Find what the AI checks for sight, hearing, disguise and enforcers. Is it hard-wired to the single local player?
+- [ ] Try making an NPC notice, become suspicious of, or attack the puppet from Spike 1.
+- [ ] Try forcing perception events by hand, for example "this NPC spotted the partner at position X".
+- **Pass:** guards react to the puppet in some controllable way. **Fail:** go with Tier 1 or Tier 2 (see Part 3).
+
+### Spike 4: Can the client's world follow the host's?
+- [ ] On the client, override one NPC's position and state with the host's values every frame. Does the client's own AI fight you?
+- [ ] Kill or knock out an NPC on the host, and make the same thing happen on the client.
+- [ ] Open a door on one machine and make it open on the other.
+- [ ] Launch the same mission on both machines with no syncing at all, and log NPC positions over time. How quickly do they drift apart? This shows how much the game relies on randomness and frame timing.
+- [ ] Try setting the same random seed on both machines. Does drift drop noticeably?
+- **Pass:** a single NPC and a single door stay in step for 10 minutes.
+
+### Spike 5: Does WoA still contain usable multiplayer code?
+- [ ] Look for Ghost Mode and Sniper Assassin co-op code paths in the WoA executable.
+- [ ] Peacock's `components/menus/sniper.ts` says official H3 Sniper Assassin "only returns one" character "because multiplayer is not supported", so don't assume the old co-op netcode still works.
+- **If it's there:** it could replace much of Spikes 1 and 4. Re-plan around it.
+
+### Spike 6: Tagging and injecting Peacock events
+- [ ] Log the full event stream each game sends to Peacock (`SaveAndSynchronizeEvents4` / `SaveEvents2` in `components/eventHandler.ts`) during a short mission.
+- [ ] Try adding a custom field to outgoing events, such as the ID of the player who caused it, from the mod or a Peacock plugin.
+- [ ] Try sending a synthetic event, such as a partner's kill, into the host's session, and check that scoring and challenges react to it.
+- **Pass:** Peacock can tell which player caused each kill. **Fail:** score each player separately and merge the results at the end of the mission.
+
+### Decision gate (end of Month 3)
+- [ ] Write down each spike's result and pick a tier from Part 3.
+- [ ] Use Spike 6's result to choose the scoring approach: tagged shared events, or separate scoring merged at the end.
+- [ ] Re-estimate Months 4–12 based on what the spikes actually took. If the spikes ran over, cut maps, not quality.
+
+---
+
+## Part 3: Design tiers
+
+| | Tier 1: Ghost co-op | Tier 2: Shared world | Tier 3: Full co-op |
+|---|---|---|---|
+| Partner visible | Yes (puppet) | Yes (puppet) | Yes |
+| NPC world | Each machine runs its own | Host controls it, client follows | Host controls it, client follows |
+| Kills and knockouts sync | Targets only | All NPCs | All NPCs |
+| Doors, items, bodies sync | No | Yes | Yes |
+| AI reacts to the partner | No | Only through forced events or not at all | Yes |
+| Needs which spikes to pass | 1 | 1, 2, 4 | 1–4 |
+| Realistic in year 1 | Several maps | 2–4 maps | 1–2 maps, rough |
+
+- **Tier 1:** like the old Ghost Mode, but working together. Both players play the same contract in separate worlds, the partner shows up as a ghost, target deaths are shared, and scores are combined. Least risk. You can ship it even if Spike 3 fails.
+- **Tier 2:** a real shared world, but guards are effectively blind to the partner. Gameplay works if you treat the partner as a "support" role, or add forced detection for actions that should obviously be seen, such as shooting in front of a guard.
+- **Tier 3:** what the original roadmap assumed. Only commit to it if Spike 3 clearly passes.
+
+---
+
+## Part 4: 12-month roadmap
+
+Months 4–12 assume Tier 2. Under Tier 1, skip the NPC and world sync items and use the time for more maps. Under Tier 3, add AI perception work to Months 5 and 7, and expect to finish fewer maps.
+
+### Month 1: Foundation
+- [ ] ZHMModSDK building and running on the current WoA build, with a hello-world mod
+- [ ] Fork Peacock and run it locally
+- [ ] Two-PC (or two-instance) test setup, with a script that launches both
+- [ ] Logging from the mod to a file, with timestamps, on both machines
+- [ ] CI build for the mod and the Peacock fork, so every commit produces a test build
+- [ ] Crash dump collection for the mod
+- [ ] Record-and-replay tool: record one player's inputs and network messages, then replay them against a second instance. This lets you test sync without two people.
+- [ ] Start Spikes 1 and 2
+
+### Month 2: Spikes
+- [ ] Finish Spikes 1 and 2
+- [ ] Start Spikes 3 and 4
+- [ ] Spike 5 in parallel, if someone has spare time
+- [ ] Spike 6 in parallel (Peacock-side only, needs no game reverse-engineering)
+
+### Month 3: Spikes and decision gate
+- [ ] Finish Spikes 3 and 4
+- [ ] Decision gate: pick the tier
+- [ ] Fill in every answer in Part 1
+- **Milestone:** a written test report and a chosen tier
+
+### Month 4: Network layer and player sync (Paris or ICA Facility)
+- [ ] Handshake: game build, mod version, protocol version, contract ID, difficulty
+- [ ] Reliable channel for events, best-effort channel for position
+- [ ] Sync position, rotation, speed, crouch and sneak at 20–30 Hz, with smoothing between updates
+- [ ] Sync disguise changes
+- [ ] Sync held and visible items
+- [ ] Name tag over the partner
+- **Milestone:** two players walk around Paris together and see each other move smoothly
+
+### Month 5: NPC and world basics (Paris)
+- [ ] NPC kills and knockouts, on both machines
+- [ ] Bodies: drag, hide in containers, discovery
+- [ ] Doors, locks and keycards
+- [ ] Item pickup, drop and throw
+- [ ] Health and death of both players
+- [ ] Out-of-sync detection: the host sends periodic checksums of key state, and the client logs any mismatch
+- **Milestone:** you can clear Paris's targets together with basic actions
+
+### Month 6: Peacock integration
+- [ ] Peacock server setup from Part 1 working
+- [ ] Lobbies built on Peacock's existing `RegisterToMatch` and `SetMatchData` (`components/multiplayer/multiplayerService.ts`), not from scratch
+- [ ] Invite codes, which map to match IDs
+- [ ] Co-op contract presets (Peacock's existing `MultiplayerPresets` config is the model)
+- [ ] Event authority and duplicate removal from Part 1, so scoring, Silent Assassin and challenges are correct for both profiles
+- [ ] XP and mastery for both profiles, with no duplication or loss
+- **Milestone:** start a co-op Paris mission from the menu, finish it, and get correct results for both profiles
+
+### Month 7: AI states and mission stories (Paris)
+- [ ] Sync AI states from the host: alerted, searching, investigating, combat, fleeing
+- [ ] Sync alarms, cameras and evidence recorders
+- [ ] Paris mission stories and opportunities, including their triggers
+- [ ] Cutscene rule: pick one (skip for both, or the host triggers and both play), and implement it
+- [ ] Crowds: leave them on each machine; sync only panic and reaction events
+- **Milestone:** Paris fully playable, including mission stories
+
+### Month 8: Accidents and second map
+- [ ] Accidents: fuses, explosions, falling objects, poisonings, drowning. The host's result is final.
+- [ ] Second map, using the Part 5 checklist. Pick a small map: Sapienza or Hokkaido.
+- **Milestone:** two maps fully playable
+
+### Month 9: Network reliability
+- [ ] Simulated lag and packet loss in testing: 100 ms, 150 ms, 2% loss
+- [ ] Bandwidth: send only what changed; nearby NPCs get updated more often than distant ones
+- [ ] Disconnect handling for v1: end the mission cleanly for both players and save progress up to that point. Rejoining and host migration are year 2.
+- [ ] Mission restart and quitting handled for both players
+- [ ] Manual saves turned off in co-op
+- [ ] Pause behaviour from Part 1: menus don't stop the shared world
+- [ ] Checks on incoming messages: reject malformed messages, unknown entity IDs and impossible values
+- **Milestone:** stable at 150 ms ping, with clean failure on disconnect
+
+### Month 10: Interface and contracts
+- [ ] Partner marker in the game and on the minimap
+- [ ] Quick pings
+- [ ] Shared notifications ("Partner spotted", "Body found")
+- [ ] Loadout screen for each player
+- [ ] Results screen showing both players
+- [ ] Featured Contracts and user contracts on the supported maps
+- **Milestone:** looks and feels like a finished mode on two maps
+
+### Month 11: Third map and outside testing
+- [ ] Third map, using the Part 5 checklist
+- [ ] Closed test with people outside the team
+- [ ] Debug overlay: ping, packet loss, out-of-sync count, entity being looked at
+- [ ] Out-of-sync logs that testers can send you
+- **Milestone:** outside testers finish missions on all three maps
+
+### Month 12: Public beta
+- [ ] Installer or patcher integration
+- [ ] Documentation, FAQ and known issues
+- [ ] Patch plan: keep game-specific addresses and hooks in one place, and have a quick way to find them again after a game update
+- [ ] Public beta on 2–4 maps, then a fixes cycle
+- **Milestone:** public beta. Call it 0.x, not 1.0.
+
+---
+
+## Part 5: Per-map checklist
+
+Copy this for each map. A map isn't "done" until every box is ticked.
+
+- [ ] Entity IDs stable across launches (Spike 2 method still works)
+- [ ] All targets: routes, deaths and exits synced
+- [ ] Every mission story and opportunity completed together
+- [ ] Every scripted sequence and cutscene handled
+- [ ] Map-specific accidents tested
+- [ ] Map-specific items: keycards, poisons and story items
+- [ ] Crowd panic tested (busy maps only)
+- [ ] All exits and the mission end screen work for both players
+- [ ] Silent Assassin run completed and scored correctly for both profiles
+- [ ] Full two-player run at 150 ms with no out-of-sync errors
+- [ ] Both players start from different starting locations and with different loadouts
+- [ ] Pause, map and inventory menus open on one machine without breaking sync
+- [ ] Recorded replay of a full run saved as a regression test
+- [ ] Known issues written down
+
+Suggested order, smallest and simplest first: Paris, Sapienza, Hokkaido, Miami, Dubai, Berlin, then the larger and busier maps (Marrakesh, Mumbai, Chongqing, New York, Mendoza). Expect about one map a month with a small team. Busy or very scripted maps take longer.
+
+---
+
+## Part 6: Year 2 and beyond
+
+- [ ] Remaining maps, using the Part 5 checklist
+- [ ] Escalations
+- [ ] Elusive Targets
+- [ ] Sniper Assassin co-op
+- [ ] Freelancer co-op: shared campaign, Syndicates and Merces
+- [ ] Matchmaking (fill in Peacock's `RegisterToPreset`, currently a `501` stub)
+- [ ] Rejoin after a disconnect
+- [ ] Host migration
+- [ ] Versus mode in the style of Ghost Mode
+- [ ] Co-op leaderboards and achievements
+- [ ] Sessions that survive a Peacock restart (Peacock currently keeps matches in memory only)
+- [ ] Groups larger than two
+- [ ] Voice chat
+- [ ] Spectator mode
+- [ ] HITMAN 2016 and HITMAN 2 builds
