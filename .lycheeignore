@@ -1,3 +1,4 @@
 # Sites that block automated link checkers (HTTP 403) but work in a browser.
 # Check these links by hand when editing them.
 ^https://(www\.)?nexusmods\.com/
+^https://(www\.)?moddb\.com/

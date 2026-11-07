@@ -95,6 +95,21 @@ Checked on 2026-11-07 by searching [Nexus Mods](https://www.nexusmods.com/games/
 
 ### Prior work
 - [ ] Search the Peacock and Glacier modding Discords, GitHub and Nexus Mods for earlier co-op or multiplayer attempts on WoA, HITMAN 2 or HITMAN 2016
+
+  Where to search, checked on 2026-11-07 (Nexus Mods is covered in [Community mods](#community-mods-nexus-mods)):
+
+  | Site | What's there |
+  |---|---|
+  | [Glacier Modding](https://glaciermodding.org) and its [Discord](https://discord.gg/6UDtuYhZP6) | The main Glacier 2 modding hub: guides (`/docs`), featured mods, tool pages. The Discord is where the ZHMModSDK, Simple Mod Framework and GlacierKit authors are: **the best place to ask about earlier co-op attempts.** |
+  | [HitmanDB](https://hitmandb.glaciermodding.org) | Searches game file hashes (useful for Spike 2). |
+  | [hitman-resources.netlify.app](https://hitman-resources.netlify.app) and [TonyTools](https://tonytools.win) | HITMAN 3 modding resources, and docs for another set of Glacier tools. |
+  | [The Peacock Project](https://thepeacockproject.org) | Peacock's site; its Discord is linked from the Peacock readme. |
+  | [HITMAPS](https://www.hitmaps.com) | Maps and Roulette; runs the public Ghost Mode server `gm.hitmaps.com` and the [hitman-server-patcher](https://gitlab.com/hitmaps/hitman-server-patcher). |
+  | [Hitman Forum](https://www.hitmanforum.com) | The long-running fan forum, with modding threads. |
+  | GitHub: [glacier-modding](https://github.com/glacier-modding), [atampy25](https://github.com/atampy25), [OrfeasZ](https://github.com/OrfeasZ); GitLab: [LocalGhost](https://gitlab.com/grappigegovert/localghost) | Source for the tools and servers above. |
+  | [GameBanana](https://gamebanana.com/games/8925) and [ModDB](https://www.moddb.com/games/hitman-3) | Almost nothing: GameBanana has 3 HITMAN 3 items, ModDB has 1 HITMAN 3 mod and 3 downloads. Not worth searching further. |
+
+  There's no Steam Workshop for HITMAN. Discord can't be searched from outside, so ask there directly.
 - [ ] For any you find, write down how far they got, what blocked them and whether their code or notes are available
 - [x] **Found:** ZHMModSDK's own `Hitmen` mod, a dormant two-player prototype by the SDK's author (see [ZHMModSDK built-in mods](#zhmmodsdk-built-in-mods)). Ask the author how far it got and why it stopped (Contacts below).
 - [x] Check the Ghost Mode and Sniper Assassin co-op research others have already done (input to Spike 5). **Found:** both run in WoA on Steam today through community mods and Peacock or LocalGhost. See [Community mods](#community-mods-nexus-mods).
