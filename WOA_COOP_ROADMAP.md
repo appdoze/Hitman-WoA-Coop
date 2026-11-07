@@ -1,6 +1,7 @@
 # Hitman WoA Co-op Mod (ZHMModSDK + Peacock)
 
 - [How this roadmap works](#how-this-roadmap-works)
+- [Part 0: Existing tools, prior work and contacts](#part-0-existing-tools-prior-work-and-contacts)
 - [Part 1: Architecture decisions](#part-1-architecture-decisions)
 - [Part 2: Risk spikes (do these first)](#part-2-risk-spikes-do-these-first)
 - [Part 3: Design tiers](#part-3-design-tiers)
@@ -32,6 +33,39 @@ Peacock never touches what happens inside a running mission. It only sees the ev
 
 ---
 
+## Part 0: Existing tools, prior work and contacts
+
+Don't build what already exists. Check these in Month 1.
+
+### Tools
+
+| Tool | Use for this mod | Licence |
+|---|---|---|
+| [ZHMModSDK](https://github.com/OrfeasZ/ZHMModSDK) | The mod itself: C++ hooks into the game | GPL-3.0+ |
+| ZHMModSDK built-in mods (`Mods/` folder) | Ready-made reference code: `Editor` (entity inspection, for Spike 2), `DebugMod`, `Player`, `Outfits` (Spike 1 disguises), `NoPause` (pause behaviour, R6 and Part 9 Method 4), `World`, `Hitmen` | GPL-3.0+ |
+| [Peacock](https://github.com/thepeacockproject/Peacock) | Server: lobbies, scoring, progression | AGPL-3.0 |
+| [Simple Mod Framework](https://github.com/atampy25/simple-mod-framework) | Installing content changes; what most players use to install mods | LGPL-3.0 |
+| [GlacierKit](https://github.com/atampy25/glacierkit) | Browsing level entities and bricks offline (Spike 2, per-map work) | LGPL-3.0 |
+| [QuickEntity](https://github.com/atampy25/quickentity-rs) | Reading and diffing entity data as JSON | LGPL-3.0 |
+| [RPKG Tool](https://github.com/glacier-modding/RPKG-Tool) | Extracting game resources for research | See repo |
+| [Hitman Hashes](https://github.com/glacier-modding/Hitman-Hashes) | Resource and hash name lists | MIT |
+
+- [ ] Read through the ZHMModSDK `Mods/` folder before writing hooks from scratch
+- [ ] Try `Editor` on Paris and note how NPCs, doors and items are identified (input to Spike 2)
+- [ ] Check whether `NoPause` already stops the game pausing when its window loses focus
+
+### Prior work
+- [ ] Search the Peacock and Glacier modding Discords, GitHub and Nexus Mods for earlier co-op or multiplayer attempts on WoA, HITMAN 2 or HITMAN 2016
+- [ ] For any you find, write down how far they got, what blocked them and whether their code or notes are available
+- [ ] Check the Ghost Mode and Sniper Assassin co-op research others have already done (input to Spike 5)
+
+### Contacts (before Month 4)
+- [ ] Introduce the project to the Peacock developers (Discord, linked from the Peacock readme). Ask about plans for `RegisterToPreset`, multiplayer and plugin hooks, and whether co-op changes could go upstream.
+- [ ] Introduce the project to the ZHMModSDK developer. Ask whether hooks you need (player spawning, AI perception, entity IDs) already exist or would be accepted upstream.
+- [ ] Share Spike results with both communities. Upstream hooks are maintained by others after game patches, which lowers R7.
+
+---
+
 ## Part 1: Architecture decisions
 
 Settle these before writing feature code. Write the answers into this file.
@@ -56,7 +90,10 @@ Settle these before writing feature code. Write the answers into this file.
 - [ ] **Pause behaviour:** the game must not pause in co-op. Opening the pause menu, map or inventory only covers the local screen. Decide what happens to saves, loading screens and the photo mode.
 - [ ] **Difficulty and settings:** both players use the host's difficulty, mission settings and starting conditions. Starting location and loadout can differ for each player.
 - [ ] **Crash recovery:** if either game crashes, the mission ends cleanly for the other player, and nobody loses progress already confirmed in Peacock.
-- [ ] **Licence:** Peacock is AGPL-3.0. A fork you release, or host for other people, must publish its source. Keep co-op server code in a separate plugin or module where possible, to make rebasing on Peacock updates easier.
+- [ ] **Licence:** Peacock is AGPL-3.0 and ZHMModSDK is GPL-3.0+. A fork you release, or host for other people, must publish its source. This repo uses AGPL-3.0, which is compatible with both. Keep co-op server code in a separate plugin or module where possible, to make rebasing on Peacock updates easier.
+- [ ] **Installed mods must match:** content mods (Simple Mod Framework) can change levels, NPCs and items, which breaks entity IDs and sync. Hash the list of installed mods and their versions, and compare it in the handshake. Decide whether to block mismatches or only warn.
+- [ ] **DLC and location ownership:** both players must own the location being played. Use the entitlements Peacock already reads at login (`components/oauthToken.ts`, `components/ownership.ts`) to grey out locations that either player doesn't own.
+- [ ] **Network privacy:** direct P2P connections reveal each player's IP address to the other. Offer a relay option (for example Steam Datagram Relay through GameNetworkingSockets, or a small self-hosted relay). Never open router ports (UPnP) without asking the player first, and show a warning before a direct connection.
 
 ---
 
@@ -134,7 +171,9 @@ Months 4–12 assume Tier 2. Under Tier 1, skip the NPC and world sync items and
 
 ### Month 1: Foundation
 - [ ] ZHMModSDK building and running on the current WoA build, with a hello-world mod
+- [ ] Part 0: tools reviewed, prior work searched and written up
 - [ ] Fork Peacock and run it locally
+- [ ] Profile backup script: copy Peacock's `userdata` folder (profiles, contract sessions) to a timestamped backup before every test session. Restore it with one command.
 - [ ] Two-PC (or two-instance) test setup, with a script that launches both
 - [ ] Logging from the mod to a file, with timestamps, on both machines
 - [ ] CI build for the mod and the Peacock fork, so every commit produces a test build
@@ -155,7 +194,8 @@ Months 4–12 assume Tier 2. Under Tier 1, skip the NPC and world sync items and
 - **Milestone:** a written test report and a chosen tier
 
 ### Month 4: Network layer and player sync (Paris or ICA Facility)
-- [ ] Handshake: game build, mod version, protocol version, contract ID, difficulty
+- [ ] Handshake: game build, mod version, protocol version, installed-mods hash, contract ID, difficulty
+- [ ] Connection choice: relay by default, direct P2P only after a warning about IP addresses
 - [ ] Reliable channel for events, best-effort channel for position
 - [ ] Sync position, rotation, speed, crouch and sneak at 20–30 Hz, with smoothing between updates
 - [ ] Sync disguise changes
@@ -179,6 +219,7 @@ Months 4–12 assume Tier 2. Under Tier 1, skip the NPC and world sync items and
 - [ ] Peacock server setup from Part 1 working
 - [ ] Lobbies built on Peacock's existing `RegisterToMatch` and `SetMatchData` (`components/multiplayer/multiplayerService.ts`), not from scratch
 - [ ] Invite codes, which map to match IDs
+- [ ] Ownership check: the lobby only offers locations both players own
 - [ ] Co-op contract presets (Peacock's existing `MultiplayerPresets` config is the model)
 - [ ] Event authority and duplicate removal from Part 1, so scoring, Silent Assassin and challenges are correct for both profiles
 - [ ] XP and mastery for both profiles, with no duplication or loss
@@ -225,6 +266,8 @@ Months 4–12 assume Tier 2. Under Tier 1, skip the NPC and world sync items and
 
 ### Month 12: Public beta
 - [ ] Installer or patcher integration
+- [ ] Automatic Peacock profile backup before every co-op mission, kept for the last 10 missions
+- [ ] Privacy notice in the README and the lobby: what data is sent to the partner and to any relay
 - [ ] Documentation, FAQ and known issues
 - [ ] Patch plan: keep game-specific addresses and hooks in one place, and have a quick way to find them again after a game update
 - [ ] Public beta on 2–4 maps, then a fixes cycle
@@ -291,6 +334,11 @@ Review this at the decision gate and at the end of every month. Update the statu
 | R8 | Scripted sequences on big maps don't sync | High | Some mission stories unplayable | Per-map checklist | Mark as known issue; skip or force-sync cutscenes | Open |
 | R9 | Team time drops (burnout, life) | High | Everything slips | Months running over by more than 25% | Cut maps, not quality; release what works | Open |
 | R10 | IOI objects to the mod | Low | Distribution problems | Contact from IOI | Follow Peacock's approach: no game files shipped, offline only, no piracy support | Open |
+| R11 | Players run different content mods | High | Entity IDs differ, instant out-of-sync | Handshake mods-hash mismatch | Compare mods hash in handshake; block or warn | Open |
+| R12 | Partner doesn't own a location or DLC | Medium | Can't join, or game crashes on load | Ownership check in lobby | Only offer locations both players own | Open |
+| R13 | Player IP addresses exposed over P2P | Medium | Privacy and harassment risk | Direct connection used | Relay by default; warn before direct connection; no automatic port opening | Open |
+| R14 | Co-op bug corrupts or loses a Peacock profile | Medium | Players lose progress, lose trust | Profile validation errors, tester reports | Automatic profile backup before every co-op mission; validate profile writes | Open |
+| R15 | Duplicated work with another co-op project or upstream | Low | Wasted months | Part 0 search, community contacts | Search and make contact in Month 1; collaborate or reuse | Open |
 
 ---
 
