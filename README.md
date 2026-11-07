@@ -63,6 +63,7 @@ Co-op connects two players' games directly or through a relay.
 - A **direct connection** reveals each player's IP address to the other. The mod will ask before connecting directly.
 - A **relay** is the default. It hides your IP address from your partner, but whoever runs the relay can see both players' IP addresses.
 - The mod will never open router ports without asking.
+- ZHMModSDK, which the mod runs on, can send crash reports to the SDK author's Sentry service if you opt in through the SDK. That's separate from this mod's own crash dumps, which stay on your PC unless you share them.
 
 ## Your progress
 

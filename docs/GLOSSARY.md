@@ -16,8 +16,9 @@ Terms used in the [roadmap](../WOA_COOP_ROADMAP.md) and the rest of this reposit
 | **Mission story** | A guided route to a target (called "opportunities" in older games), usually with scripted events and cutscenes. |
 | **Silent Assassin (SA)** | The top rating. In Peacock (`calculateScore` in `components/scoreHandler.ts`) all of these must hold: no non-target kills (including crowd NPCs), never spotted, no kills noticed, no bodies found, and not caught on a security camera (or the recording destroyed). Objectives don't count towards SA. Spotting, noticed kills and found bodies are forgiven only if that witness is later killed, and killing them is itself a non-target kill unless they're a target. One exception: a *murdered* body seen by a non-target loses SA for good (`MurderedBodySeen` in `components/eventHandler.ts`), but bodies found after an accident don't. Easy to break by mistake in co-op (see Spike 6). |
 | **Enforcer** | An NPC who can see through a disguise of their own type. |
-| **Ghost Mode** | HITMAN 2's 1v1 mode where both players race to kill the same targets in separate copies of the world. |
-| **Sniper Assassin** | Sniper-only maps from HITMAN 2, which had a co-op mode. |
+| **Ghost Mode** | HITMAN 2's 1v1 mode where both players race to kill the same targets in separate copies of the world. A community mod ports it to WoA on Steam (roadmap Part 0). |
+| **LocalGhost** | Open-source community server for Ghost Mode after IOI's servers closed; Peacock grew out of it. |
+| **Sniper Assassin** | Sniper-only maps from HITMAN 2, which had a co-op mode (players Stone and Knight). The community Sniper Co-op mod brings the co-op mode back in WoA on Steam. |
 | **Freelancer** | WoA's roguelike mode with Syndicates and its own currency, Merces. |
 
 ## Tools and projects
