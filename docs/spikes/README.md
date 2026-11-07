@@ -15,4 +15,6 @@ To start one, copy [TEMPLATE.md](TEMPLATE.md) to the file name below and fill it
 
 When you create a spike's file, turn its file name in the table into a link and update the status.
 
+Track day-to-day progress in each spike's issue (linked in the table). The roadmap holds the plan, the issue holds the ticks and discussion, and the file here holds the final write-up.
+
 Rules from [CONTRIBUTING.md](../../CONTRIBUTING.md) apply: no decompiled game code, no game files, no personal data in logs or screenshots.

@@ -107,6 +107,8 @@ Each test has a pass/fail outcome. Don't polish anything here. Throwaway code is
 
 Write each spike up in [docs/spikes](docs/spikes/) using [the template](docs/spikes/TEMPLATE.md), one file per spike.
 
+**Where to track what:** this section is the *plan* for each spike: the steps and the pass condition. Progress lives in each spike's linked issue: tick the boxes there, not here, and discuss there. If a spike's plan changes, change it here first, then copy the change into the issue. When a spike is done, tick its whole section here in one go and link the write-up.
+
 ### Spike 1: Remote player puppet
 Issue: [#1](https://github.com/appdoze/Hitman-WoA-Coop/issues/1)
 - [ ] Spawn a second 47 (or an NPC wearing 47's outfit) in a level, controlled by your code, not by the game's player controller.
@@ -182,6 +184,7 @@ Issue: [#6](https://github.com/appdoze/Hitman-WoA-Coop/issues/6)
 Months 4–12 assume Tier 2. Under Tier 1, skip the NPC and world sync items and use the time for more maps. Under Tier 3, add AI perception work to Months 5 and 7, and expect to finish fewer maps.
 
 ### Month 1: Foundation
+Issues: [Month 1 milestone](https://github.com/appdoze/Hitman-WoA-Coop/milestone/1). Items marked `good first issue` there need no reverse-engineering experience.
 - [ ] ZHMModSDK building and running on the current WoA build, with a hello-world mod
 - [ ] Part 0: tools reviewed, prior work searched and written up
 - [ ] Fork Peacock and run it locally

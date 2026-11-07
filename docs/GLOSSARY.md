@@ -14,7 +14,7 @@ Terms used in the [roadmap](../WOA_COOP_ROADMAP.md) and the rest of this reposit
 | **RPKG** | The game's resource package files. Never commit these. |
 | **Contract** | A playable mission setup: map, targets, conditions. Missions, Featured Contracts, Escalations and Elusive Targets are all contracts. |
 | **Mission story** | A guided route to a target (called "opportunities" in older games), usually with scripted events and cutscenes. |
-| **Silent Assassin (SA)** | The top rating: only targets killed, no bodies found, never spotted. Easy to break by mistake in co-op (see Spike 6). |
+| **Silent Assassin (SA)** | The top rating. All of these must hold: every objective done, no non-target kills, never spotted, no kills noticed, no bodies found, and never caught on a security camera (or the recording erased). Being spotted or having a body found doesn't count if that witness is later killed (though killing a non-target still breaks SA on its own). Peacock checks this in `components/scoreHandler.ts`. Easy to break by mistake in co-op (see Spike 6). |
 | **Enforcer** | An NPC who can see through a disguise of their own type. |
 | **Ghost Mode** | HITMAN 2's 1v1 mode where both players race to kill the same targets in separate copies of the world. |
 | **Sniper Assassin** | Sniper-only maps from HITMAN 2, which had a co-op mode. |
