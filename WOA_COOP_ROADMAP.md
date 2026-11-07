@@ -214,6 +214,7 @@ Issue: [#5](https://github.com/appdoze/Hitman-WoA-Coop/issues/5)
 ### Spike 6: Tagging and injecting Peacock events
 Issue: [#6](https://github.com/appdoze/Hitman-WoA-Coop/issues/6)
 - [ ] Log the full event stream each game sends to Peacock (`SaveAndSynchronizeEvents4` / `SaveEvents2` in `components/eventHandler.ts`) during a short mission.
+- [ ] Measure how often the game sends event batches. Peacock receives events in batches (the `values` array in `SaveAndSynchronizeEvents4`), but how often a batch is sent is decided by the game, not Peacock. Log each request's arrival time, number of events, and its `lastEventTicks` and `lastPushDt` fields, during normal play, a loading screen, a cutscene and right before quitting. The result sets how many events a crash loses (D013, #26) and how late Peacock sees each event (D005).
 - [ ] Try adding a custom field to outgoing events, such as the ID of the player who caused it. The game builds and sends these events itself, so this needs a hook on the game's event sending in the mod, or a small proxy between the game and Peacock. A Peacock plugin alone can't know who caused an event.
 - [ ] Try sending a synthetic event, such as a partner's kill, into the host's session, and check that scoring and challenges react to it.
 - [ ] Find which events the host's game sends when the *partner* kills or knocks out an NPC (likely an NPC death or "body found" with no clear cause). These are the events that would wrongly cost the host Silent Assassin or non-target kill penalties.
