@@ -71,7 +71,7 @@ Don't build what already exists. Check these in Month 1.
 
 ## Part 1: Architecture decisions
 
-Settle these before writing feature code. Record each answer in [docs/decisions](docs/decisions/) (one file per decision, numbered D001–D018 in the order below), then tick it here.
+Settle these before writing feature code. Record each answer in [docs/decisions](docs/decisions/) (one file per decision, numbered D001–D018 in the order below), then tick it here. Once a decision file exists, it is the source of truth for that decision, not this list or its issue.
 
 - [ ] **Network model:** the host machine controls the world (NPCs, AI, physics, story state). The client sends its inputs and actions to the host and shows the host's results.
 - [ ] **Two network channels:**
@@ -198,7 +198,7 @@ Issues: [Month 1 milestone](https://github.com/appdoze/Hitman-WoA-Coop/milestone
 - [ ] Start Spikes 1 and 2
 
 ### Month 2: Spikes
-- [ ] Settle the decisions that don't need spike results: D006, D007, D008, D010, D013, D015, D018 (issues #16–#22, see [docs/decisions](docs/decisions/))
+- [ ] Settle the decisions that don't need spike results: D006, D007, D008, D010, D012, D013, D015, D017, D018 (issues #16–#24, see [docs/decisions](docs/decisions/))
 - [ ] Finish Spikes 1 and 2
 - [ ] Start Spikes 3 and 4
 - [ ] Spike 5 in parallel, if someone has spare time
