@@ -97,13 +97,14 @@ Each test has a pass/fail outcome. Don't polish anything here. Throwaway code is
 
 ### Spike 6: Tagging and injecting Peacock events
 - [ ] Log the full event stream each game sends to Peacock (`SaveAndSynchronizeEvents4` / `SaveEvents2` in `components/eventHandler.ts`) during a short mission.
-- [ ] Try adding a custom field to outgoing events, such as the ID of the player who caused it, from the mod or a Peacock plugin.
+- [ ] Try adding a custom field to outgoing events, such as the ID of the player who caused it. The game builds and sends these events itself, so this needs a hook on the game's event sending in the mod, or a small proxy between the game and Peacock. A Peacock plugin alone can't know who caused an event.
 - [ ] Try sending a synthetic event, such as a partner's kill, into the host's session, and check that scoring and challenges react to it.
-- **Pass:** Peacock can tell which player caused each kill. **Fail:** score each player separately and merge the results at the end of the mission.
+- [ ] Find which events the host's game sends when the *partner* kills or knocks out an NPC (likely an NPC death or "body found" with no clear cause). These are the events that would wrongly cost the host Silent Assassin or non-target kill penalties.
+- **Pass:** Peacock can tell which player caused each kill. **Fail:** score each player separately and merge the results at the end of the mission, with a filter rule: each player's session ignores deaths, knockouts and bodies that the mod says were caused by the partner. Without that rule, separate scoring still penalises the host for the partner's actions.
 
 ### Decision gate (end of Month 3)
 - [ ] Write down each spike's result and pick a tier from Part 3.
-- [ ] Use Spike 6's result to choose the scoring approach: tagged shared events, or separate scoring merged at the end.
+- [ ] Use Spike 6's result to choose the scoring approach: tagged shared events, or separate scoring with the partner-action filter, merged at the end.
 - [ ] Re-estimate Months 4–12 based on what the spikes actually took. If the spikes ran over, cut maps, not quality.
 
 ---
@@ -137,14 +138,13 @@ Months 4–12 assume Tier 2. Under Tier 1, skip the NPC and world sync items and
 - [ ] Logging from the mod to a file, with timestamps, on both machines
 - [ ] CI build for the mod and the Peacock fork, so every commit produces a test build
 - [ ] Crash dump collection for the mod
-- [ ] Record-and-replay tool: record one player's inputs and network messages, then replay them against a second instance. This lets you test sync without two people.
 - [ ] Start Spikes 1 and 2
 
 ### Month 2: Spikes
 - [ ] Finish Spikes 1 and 2
 - [ ] Start Spikes 3 and 4
 - [ ] Spike 5 in parallel, if someone has spare time
-- [ ] Spike 6 in parallel (Peacock-side only, needs no game reverse-engineering)
+- [ ] Spike 6 in parallel. Logging the event stream is Peacock-only work; tagging events with the player who caused them needs a mod-side hook (or a proxy in front of Peacock).
 
 ### Month 3: Spikes and decision gate
 - [ ] Finish Spikes 3 and 4
@@ -159,6 +159,7 @@ Months 4–12 assume Tier 2. Under Tier 1, skip the NPC and world sync items and
 - [ ] Sync disguise changes
 - [ ] Sync held and visible items
 - [ ] Name tag over the partner
+- [ ] Message log: write every network message to a file with its mission-clock timestamp, on both machines
 - **Milestone:** two players walk around Paris together and see each other move smoothly
 
 ### Month 5: NPC and world basics (Paris)
@@ -167,6 +168,7 @@ Months 4–12 assume Tier 2. Under Tier 1, skip the NPC and world sync items and
 - [ ] Doors, locks and keycards
 - [ ] Item pickup, drop and throw
 - [ ] Health and death of both players
+- [ ] Message replay tool: feed a recorded host session's messages (from the Month 4 message log) into a fresh client instance, so you can retest the client without a second person. Replay the host's *messages*, not a player's *inputs*: the game isn't deterministic (see Spike 4), so replayed inputs drift and won't reproduce bugs.
 - [ ] Out-of-sync detection: the host sends periodic checksums of key state, and the client logs any mismatch
 - **Milestone:** you can clear Paris's targets together with basic actions
 
@@ -243,7 +245,7 @@ Copy this for each map. A map isn't "done" until every box is ticked.
 - [ ] Full two-player run at 150 ms with no out-of-sync errors
 - [ ] Both players start from different starting locations and with different loadouts
 - [ ] Pause, map and inventory menus open on one machine without breaking sync
-- [ ] Recorded replay of a full run saved as a regression test
+- [ ] Host message log of a full run saved as a regression test (replayed into a client with the Month 5 tool)
 - [ ] Known issues written down
 
 Suggested order, smallest and simplest first: Paris, Sapienza, Hokkaido, Miami, Dubai, Berlin, then the larger and busier maps (Marrakesh, Mumbai, Chongqing, New York, Mendoza). Expect about one map a month with a small team. Busy or very scripted maps take longer.
@@ -267,3 +269,48 @@ Suggested order, smallest and simplest first: Paris, Sapienza, Hokkaido, Miami, 
 - [ ] Voice chat
 - [ ] Spectator mode
 - [ ] HITMAN 2016 and HITMAN 2 builds
+
+---
+
+## Part 7: Risk register
+
+Review this at the decision gate and at the end of every month. Update the status column, add new risks as you find them.
+
+| # | Risk | Likelihood | Impact | Early warning | Response | Status |
+|---|---|---|---|---|---|---|
+| R1 | AI can't be made to perceive a second player | High | Tier 3 impossible | Spike 3 | Drop to Tier 2 or Tier 1 | Open |
+| R2 | No stable entity IDs across machines | Medium | Tier 2/3 much harder | Spike 2 | Own ID scheme (spawn order, position), budget extra time | Open |
+| R3 | Client's own AI fights the host's state | Medium | Constant out-of-sync errors | Spike 4 | Suppress client AI for host-controlled NPCs; drop to Tier 1 if impossible | Open |
+| R4 | Game randomness and frame timing cause fast drift | Medium | More bandwidth, more sync code | Spike 4 drift test | Sync seed at start, or send every random outcome from the host | Open |
+| R5 | Peacock can't attribute events to a player | Medium | Wrong scoring, broken Silent Assassin | Spike 6 | Separate scoring with partner-action filter | Open |
+| R6 | Pause menu or loading screens can't be decoupled from the shared world | Medium | Co-op breaks whenever someone opens a menu | Month 4 testing | Hook pause; block pause in co-op if needed | Open |
+| R7 | Game patch breaks hooks | Low (WoA patches rarely now) | Mod stops working | Build number changes | Version lock; keep addresses in one place; pattern scans instead of fixed addresses | Open |
+| R8 | Scripted sequences on big maps don't sync | High | Some mission stories unplayable | Per-map checklist | Mark as known issue; skip or force-sync cutscenes | Open |
+| R9 | Team time drops (burnout, life) | High | Everything slips | Months running over by more than 25% | Cut maps, not quality; release what works | Open |
+| R10 | IOI objects to the mod | Low | Distribution problems | Contact from IOI | Follow Peacock's approach: no game files shipped, offline only, no piracy support | Open |
+
+---
+
+## Part 8: Definition of done and metrics
+
+### Definition of done for any feature
+- [ ] Works on both host and client, tested on two separate PCs (not only two instances)
+- [ ] Works at 150 ms ping and 2% packet loss
+- [ ] Out-of-sync detection covers it (the host's checksum includes its state)
+- [ ] Messages it sends are checked on arrival (malformed or impossible values rejected)
+- [ ] Logged well enough that a tester's log explains a failure
+- [ ] Known issues written down
+
+### Metrics to track
+Record these at the end of every month from your test runs. A milestone isn't met until its numbers are.
+
+| Metric | How to measure | Beta target (Month 12) |
+|---|---|---|
+| Out-of-sync errors | Checksum mismatches per hour of play, from the Month 5 detection | Fewer than 1 per hour |
+| Mission completion | Share of two-player test runs that reach the exit on supported maps | 90% or more |
+| Crash rate | Crashes per hour of play, from crash dumps | Fewer than 1 per 5 hours |
+| Bandwidth | Average and peak per player, from the message log | Under 100 KB/s average |
+| Latency tolerance | Highest ping where test runs still meet the out-of-sync target | 150 ms |
+| Scoring accuracy | Test runs where both profiles get the expected rating, Silent Assassin status and XP | 100% on Silent Assassin test runs |
+| Disconnect handling | Test disconnects where both players end cleanly with progress kept | 100% |
+| Map coverage | Maps with every Part 5 box ticked | 2–4 |
